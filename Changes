@@ -1,2 +1,7 @@
+0.000_002	2021-01-17	T. R. Wyant
+    Cope with Module::Extract::Use garbage resulting from its
+    too-aggressive attempt to find require() embedded in other
+    statements.
+
 0.000_001	2021-01-17	T. R. Wyant
     Initial version.
