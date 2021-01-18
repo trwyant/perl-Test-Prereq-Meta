@@ -113,8 +113,6 @@ sub file_prereq_ok {
 	and confess(
 	'Usage: $tpm->file_prereq_ok( $file ) or file_prereq_ok( $file )' );
 
-    state $extor = Module::Extract::Use->new();
-
     # Because this gets us a pre-built object I use $Test::Builder::Level
     # (localized) to get tests reported relative to the correct file and
     # line, rather than setting the 'level' attribute.
@@ -139,12 +137,18 @@ sub file_prereq_ok {
     my $need_skip = 1;
     my $ok = 1;
 
+    state $extor = Module::Extract::Use->new();
+
     foreach my $usage (
 	sort { $a->{module} cmp $b->{module} }
 	@{ $extor->get_modules_with_details( $file ) }
     ) {
 	local $Test::Builder::Level = _nest_depth();
 	my $module = $usage->{module};
+	# The following is needed because Module::Extract::Use tries too
+	# hard to find return() statements embedded in other statements.
+	$module =~ m/ \A [\w:]+ \z /smx
+	    or next;
 	$need_skip = 0;
 	$TEST->ok(
 	    $self->{has}{$module} || 0,

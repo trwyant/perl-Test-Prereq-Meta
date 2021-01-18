@@ -34,6 +34,8 @@ Test::Prereq::Meta->new(
     name	=> 'Unlisted-but-accepted prereq: %f uses %m',
 )->all_prereq_ok( 't/data/accept/lib' );
 
+Test::Prereq::Meta::file_prereq_ok( 't/data/rogue_require' );
+
 done_testing;
 
 1;
