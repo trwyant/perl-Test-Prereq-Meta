@@ -16,8 +16,6 @@ BEGIN {
 }
 
 Test::Pod::LinkCheck::Lite->new(
-    # TODO - drop when published to GitHub
-    ignore_url		=> qr< \A https://github.com/ >smx,
     prohibit_redirect	=> ALLOW_REDIRECT_TO_INDEX,
 )->all_pod_files_ok(
     qw{ blib eg },
