@@ -26,7 +26,7 @@ sub new {
     my ( $class, %arg ) = @_;
 
     $arg{accept} //= [];
-    $arg{meta_file} //= _default_meta_file();
+    $arg{meta_file} = _validate_meta_file( $arg{meta_file} );
     $arg{name} //= 'Prereq test: %f uses %m';
     $arg{per_file_note} //= '%f';
     $arg{perl_version} //= 'none';
@@ -194,14 +194,6 @@ sub prereq_ok {
     return $self->all_prereq_ok();
 }
 
-sub _default_meta_file {
-    foreach my $fn ( qw{ META.json META.yml MYMETA.json MYMETA.yml } ) {
-	-e $fn
-	    and return $fn;
-    }
-    croak 'Could not find default meta file';
-}
-
 sub _is_perl {
     my ( $file ) = @_;
     -T $file
@@ -236,6 +228,25 @@ sub _unpack_args {
 	shift @arg :
 	__PACKAGE__->new();
     return ( $self, @arg );
+}
+
+sub _validate_meta_file {
+    my ( $arg ) = @_;
+    $arg //= [ qw{ MYMETA.json MYMETA.yml META.json META.yml } ];
+    ref $arg
+	or $arg = [ $arg ];
+    REF_ARRAY eq ref $arg
+	or croak( q<'meta_file' must be a SCALAR or an ARRAY reference> );
+    @{ $arg }
+	or croak( q<'meta_file' ARRAY reference must not be empty> );
+    foreach my $fn ( @{ $arg } ) {
+	-r $fn
+	    and return $fn;
+    }
+    1 == @{ $arg }
+	and croak( "$arg->[0] not readable" );
+    local $" = ', ';
+    croak( "None of @{ $arg } readable" );
 }
 
 1;
@@ -315,11 +326,14 @@ The default is C<[]>, that is, a reference to an empty array.
 =item meta_file
 
 This argument specifies the name of the file that contains the meta
-data. If not specified, it defaults to the first extant file from the
-list F<META.json>, F<META.yml>, F<MYMETA.json>, F<MYMETA.yml>.
+data, or a reference to an array of file names. In the latter case the
+first file that is readable will be used.
 
-An exception will be thrown if this argument is defaulted and a default
-file can not be found, or if the file does not exist or can not be read.
+The default is
+
+ [ qw{ MYMETA.json MYMETA.yml META.json META.yml } ]
+
+An exception will be thrown if none of the specified files is readable.
 
 =item name
 

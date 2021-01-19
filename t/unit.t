@@ -30,7 +30,10 @@ Test::Prereq::Meta->new(
 
 Test::Prereq::Meta->new(
     accept	=> [ qw{ strict } ],
-    meta_file	=> 't/data/accept/META.json',
+    meta_file	=> [ qw{
+	t/data/accept/some-non-existent-file.yml
+	t/data/accept/META.json
+	} ],
     name	=> 'Unlisted-but-accepted prereq: %f uses %m',
 )->all_prereq_ok( 't/data/accept/lib' );
 

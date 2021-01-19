@@ -19,7 +19,7 @@ my $dump;
 
 GetOptions( \%opt,
     qw{
-	meta_file|meta-file=s
+	meta_file|meta-file=s@
 	name=s
 	perl_version|perl-version=s
     },
@@ -62,7 +62,8 @@ exits.
  --meta-file MYMETA.yml
 
 This option specifies the name of the file containing the distribution's
-meta data.
+meta data. It can be specified more than once, in which case the first
+file that is readable is used.
 
 If unspecified, L<Test::Prereq::Meta|Test::Prereq::Meta>'s default is
 used.
