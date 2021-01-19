@@ -136,6 +136,7 @@ sub file_prereq_ok {
 
     my $need_skip = 1;
     my $ok = 1;
+    my %module_found;
 
     state $extor = Module::Extract::Use->new();
 
@@ -145,10 +146,19 @@ sub file_prereq_ok {
     ) {
 	local $Test::Builder::Level = _nest_depth();
 	my $module = $usage->{module};
+
 	# The following is needed because Module::Extract::Use tries too
 	# hard to find return() statements embedded in other statements.
 	$module =~ m/ \A [\w:]+ \z /smx
 	    or next;
+
+	# The following is needed because Module::Extract::Use returns
+	# duplicate 'require' statements because it finds them both in
+	# the scan for PPI::Statement::Include objects and in the scan
+	# for PPI::Token::Word 'require' objects.
+	$module_found{$module}++
+	    and next;
+
 	$need_skip = 0;
 	$TEST->ok(
 	    $self->{has}{$module} || 0,
