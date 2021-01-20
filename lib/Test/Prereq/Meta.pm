@@ -25,12 +25,26 @@ use constant REF_ARRAY	=> ref [];
 sub new {
     my ( $class, %arg ) = @_;
 
-    $arg{accept} //= [];
-    $arg{meta_file} = _validate_meta_file( $arg{meta_file} );
     $arg{name} //= 'Prereq test: %f uses %m';
     $arg{per_file_note} //= '%f';
     $arg{perl_version} //= 'none';
     $arg{skip_name} //= 'Prereq test: %f does not use any modules';
+
+    state $array_default = {
+	accept	=> [],
+	meta_file	=> [ qw{
+	    MYMETA.json MYMETA.yml META.json META.yml } ],
+    };
+    foreach my $name ( keys %{ $array_default } ) {
+	$arg{$name} //= $array_default->{$name};
+	ref $arg{$name}
+	    or $arg{$name} = [ $arg{$name} ];
+	REF_ARRAY eq ref $arg{$name}
+	    or croak( "'$name' must be a SCALAR or ARRAY reference" );
+	my $code;
+	$code = __PACKAGE__->can( "__validate_$name" )
+	    and $arg{$name} = $code->( $name, \%arg );
+    }
 
     REF_ARRAY eq ref $arg{accept}
 	or croak( q<'accept' must be an ARRAY reference> );
@@ -240,23 +254,18 @@ sub _unpack_args {
     return ( $self, @arg );
 }
 
-sub _validate_meta_file {
-    my ( $arg ) = @_;
-    $arg //= [ qw{ MYMETA.json MYMETA.yml META.json META.yml } ];
-    ref $arg
-	or $arg = [ $arg ];
-    REF_ARRAY eq ref $arg
-	or croak( q<'meta_file' must be a SCALAR or an ARRAY reference> );
-    @{ $arg }
-	or croak( q<'meta_file' ARRAY reference must not be empty> );
-    foreach my $fn ( @{ $arg } ) {
+sub __validate_meta_file {
+    my ( $name, $arg ) = @_;
+    @{ $arg->{$name} }
+	or croak( "'$name' must specify at least one file" );
+    foreach my $fn ( @{ $arg->{$name} } ) {
 	-r $fn
 	    and return $fn;
     }
     1 == @{ $arg }
-	and croak( "$arg->[0] not readable" );
+	and croak( "$arg->{$name}[0] not readable" );
     local $" = ', ';
-    croak( "None of @{ $arg } readable" );
+    croak( "None of @{ $arg->{$name} } readable" );
 }
 
 1;
@@ -328,8 +337,9 @@ as name/value pairs:
 
 =item accept
 
-This argument is a reference to an array of module names. These modules
-will be passed even if they are not listed as prerequisites.
+This argument is the name of a module, or a reference to an array of
+module names. These modules will be passed even if they are not listed
+as prerequisites.
 
 The default is C<[]>, that is, a reference to an empty array.
 
