@@ -9,6 +9,7 @@ use Carp;
 use CPAN::Meta;
 use Exporter qw{ import };
 use File::Find;
+use File::Spec;
 use Module::Extract::Use;
 use Module::CoreList;
 use Test::More 0.88;
@@ -20,12 +21,21 @@ our %EXPORT_TAGS = (
     all	=> \@EXPORT_OK,
 );
 
+use constant DEFAULT_PATH_TYPE	=> do {
+    ( my $path_type = $File::Spec::ISA[0] ) =~ s/ .* :: //smx;
+    $path_type;
+};
+
 use constant REF_ARRAY	=> ref [];
 
 sub new {
     my ( $class, %arg ) = @_;
 
+    # NOTE that {path_type} is unsupported, and may change or be
+    # retracted without warning. I thought I needed it to support
+    # argument {prune}, which is itself experimental.
     $arg{name} //= 'Prereq test: %f uses %m';
+    $arg{path_type} //= DEFAULT_PATH_TYPE;
     $arg{per_file_note} //= '%f';
     $arg{perl_version} //= 'none';
     $arg{skip_name} //= 'Prereq test: %f does not use any modules';
@@ -34,6 +44,7 @@ sub new {
 	accept	=> [],
 	meta_file	=> [ qw{
 	    MYMETA.json MYMETA.yml META.json META.yml } ],
+	prune	=> [],
     };
     foreach my $name ( keys %{ $array_default } ) {
 	$arg{$name} //= $array_default->{$name};
@@ -94,9 +105,11 @@ sub new {
 	name		=> $arg{name},
 	per_file_note	=> $arg{per_file_note},
 	perl_version	=> $arg{perl_version},
+	prune		=> $arg{prune},
 	# provides	=> $provides,
 	# requires	=> \%requires,
 	skip_name	=> $arg{skip_name},
+	_normalize_path	=> $arg{_normalize_path},
     }, ref $class || $class;
 }
 
@@ -104,12 +117,23 @@ sub all_prereq_ok {
     my ( $self, @file ) = _unpack_args( @_ );
     @file
 	or @file = grep { -d } qw{ blib/arch blib/lib blib/script t };
+
+    my $need_skip = 1;
     my $ok = 1;
+
     File::Find::find(
 	{
 	    wanted	=> sub {
+		if ( $self->{_normalize_path} ) {
+		    $self->{_normalize_path}->();
+		    if ( $self->{prune}{$_} ) {
+			$File::Find::prune = 1;
+			return;
+		    }
+		}
 		_is_perl( $_ )
 		    or return;
+		$need_skip = 0;
 		$self->file_prereq_ok( $_ )
 		    or $ok = 0;
 		return;
@@ -117,7 +141,16 @@ sub all_prereq_ok {
 	    no_chdir	=> 1,
 	    preprocess	=> sub { return( sort @_ ) },
 	},
-	@file );
+	@file,
+    );
+
+    if ( $need_skip ) {
+	state $TEST = Test::More->builder();
+	local $Test::Builder::Level = _nest_depth();
+	# $TEST->skip( "$file does not use any modules" );
+	$TEST->skip( 'No Perl files found' );
+    }
+
     return $ok;
 }
 
@@ -246,6 +279,25 @@ sub _is_perl {
     }
 }
 
+# All the __normalize_path_* subroutines operate on $_. They take no
+# arguments and return nothing relevant. The names are File::Spec::
+# OS-specific class names, and the intent is that anything supported by
+# File::Spec should appear here.
+
+sub __normalize_path_AmigaOS {}	# Assumed based on File::Spec::AmigaOS
+
+sub __normalize_path_Cygwin {}	# I believe.
+
+sub __normalize_path_OS2 { s| \\ |/|smxg; }	## no critic (RequireFinalReturn)
+
+sub __normalize_path_Unix {}
+
+sub __normalize_path_VMS {
+    croak( 'Can not normalize VMS paths' );
+}
+
+sub __normalize_path_Win32 { s| \\ |/|smxg; }	## no critic (RequireFinalReturn)
+
 sub _unpack_args {
     my @arg = @_;
     my $self = ( ref( $arg[0] ) && ref( $arg[0] )->isa( __PACKAGE__ ) ) ?
@@ -266,6 +318,20 @@ sub __validate_meta_file {
 	and croak( "$arg->{$name}[0] not readable" );
     local $" = ', ';
     croak( "None of @{ $arg->{$name} } readable" );
+}
+
+sub __validate_prune {
+    my ( $name, $arg ) = @_;
+    my %rslt;
+    foreach ( @{ $arg->{$name} } ) {
+	$arg->{_normalize_path} ||= __PACKAGE__->can(
+	    "__normalize_path_$arg->{path_type}" )
+	|| croak( "Invalid path type '$arg->{path_type}'" );
+	$arg->{_normalize_path}->();
+	$rslt{$_} = 1;
+    }
+    $arg->{_normalize_path} ||= undef;
+    return \%rslt;
 }
 
 1;
@@ -411,6 +477,26 @@ This is equivalent to specifying the value of C<$]>.
 =back
 
 The default is C<'none'>.
+
+=item prune
+
+This argument should be considered B<experimental>. There are obvious
+portability issues, and VMS is currently unsupported because I have no
+such platform on which to develop or test. It may become necessary to
+change this in incompatible ways with little (or no) notice, or retract
+it completely. B<Caveat coder.>
+
+This argument specifies the names of files to prune from the scan done
+by L<all_prereq_ok()|/all_prereq_ok>. In the case of directories (which
+is the anticipated use) all files in the directory will also be ignored.
+A single file can be specified as a scalar; otherwise the value is a
+reference to an array of file names.
+
+The specifications are matched against the file names reported by
+L<File::Find|File::Find> (normalized to POSIX form) and are relative to
+the distribution directory.
+
+For portability, files must be specified in POSIX syntax.
 
 =item skip_name
 

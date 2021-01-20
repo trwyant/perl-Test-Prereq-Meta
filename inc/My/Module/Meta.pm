@@ -71,6 +71,7 @@ sub requires {
 	'CPAN::Meta'	=> 0,
 	'Exporter'	=> 0,
 	'File::Find'	=> 0,
+	'File::Spec'	=> 0,
 	'Module::CoreList'	=> 0,
 	'Module::Extract::Use'	=> 0,
 	constant	=> 0,

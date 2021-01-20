@@ -19,6 +19,7 @@ t/data/accept/META.json
 t/data/hello_world.PL
 t/data/rogue_require
 t/file_prereq_ok.t
+t/normalize_path.t
 t/prereq_ok.t
 t/unit.t
 xt/author/changes.t

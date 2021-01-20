@@ -22,6 +22,7 @@ GetOptions( \%opt,
 	meta_file|meta-file=s@
 	name=s
 	perl_version|perl-version=s
+	prune=s@
     },
     help	=> sub { pod2usage( { -verbose => 2 } ) },
 ) or pod2usage( { -verbose => 0 } );
@@ -30,6 +31,7 @@ my $tpm = Test::Prereq::Meta->new(
     meta_file		=> $opt{meta_file},
     name		=> $opt{name},
     perl_version	=> $opt{perl_version},
+    prune		=> $opt{prune},
 );
 
 $tpm->all_prereq_ok( @ARGV );
