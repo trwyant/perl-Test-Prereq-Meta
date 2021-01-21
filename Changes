@@ -1,3 +1,6 @@
+0.000_007	2021-01-21	T. R. Wyant
+    Test ability to generate own provides() info
+
 0.000_006	2021-01-21	T. R. Wyant
     Use Module::Metadata to get provided modules if necessary, though
     the metadata is still preferred.

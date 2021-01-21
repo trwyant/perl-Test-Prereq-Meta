@@ -14,7 +14,7 @@ use Module::Extract::Use;
 use Module::CoreList;
 use Test::More 0.88;
 
-our $VERSION = '0.000_006';
+our $VERSION = '0.000_007';
 
 our @EXPORT_OK = qw{ all_prereq_ok file_prereq_ok prereq_ok };
 our %EXPORT_TAGS = (
