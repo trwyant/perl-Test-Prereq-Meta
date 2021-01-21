@@ -43,6 +43,12 @@ Test::Prereq::Meta->new(
 
 Test::Prereq::Meta->new(
     accept	=> [ qw{ strict } ],
+    meta_file	=> 't/data/accept/META_NO_PROVIDES.json',
+    name	=> 'No provides: %f uses %m',
+)->all_prereq_ok( 't/data/accept/lib' );
+
+Test::Prereq::Meta->new(
+    accept	=> [ qw{ strict } ],
     meta_file	=> [ qw{
 	t/data/accept/some-non-existent-file.yml
 	t/data/accept/META.json

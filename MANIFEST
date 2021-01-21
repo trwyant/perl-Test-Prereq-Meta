@@ -16,6 +16,7 @@ README
 t/basic.t
 t/data/accept/lib/accept.pm
 t/data/accept/META.json
+t/data/accept/META_NO_PROVIDES.json
 t/data/hello_world.PL
 t/data/rogue_require
 t/file_prereq_ok.t
