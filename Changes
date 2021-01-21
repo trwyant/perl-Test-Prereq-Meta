@@ -1,3 +1,9 @@
+0.000_006	2021-01-21	T. R. Wyant
+    Use Module::Metadata to get provided modules if necessary, though
+    the metadata is still preferred.
+
+    Add {prune} argument to prune all_prereq_ok search.
+
 0.000_005	2021-01-19	T. R. Wyant
     Eliminate duplicate tests. These are generated because
     Module::Extract::Use finds (and returns) the same require() twice.
