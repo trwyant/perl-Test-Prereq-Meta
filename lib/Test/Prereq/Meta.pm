@@ -345,7 +345,7 @@ Test::Prereq::Meta - Test distribution prerequisites against meta data.
 =head1 SYNOPSIS
 
  use Test::More 0.88; # For done_testing();
- use Test::Prereq::Meta;
+ use Test::Prereq::Meta qw{ prereq_ok };
  
  prereq_ok();
  
@@ -359,8 +359,8 @@ by Brian D. Foy's L<Test::Prereq|Test::Prereq>, and like it uses
 L<Module::Extract::Use|Module::Extract::Use> to determine what modules a
 given Perl script/module needs. But unlike L<Test::Prereq|Test::Prereq>
 this module loads prerequisites from the distribution's meta data file
-(which must be present) using L<CPAN::Meta|CPAN::Meta>, and is thus
-independent of the distributions build mechanism.
+(hence the module's name) using L<CPAN::Meta|CPAN::Meta>, and is thus
+independent of the distribution's build mechanism.
 
 B<Note> that this package requires Perl 5.10, a requirement it inherits
 from L<Module::Extract::Use|Module::Extract::Use>. If you are writing a
@@ -371,10 +371,10 @@ its own file:
  use Test::More 0.88; # For done_testing();
  
  BEGIN {
-   $] ge '5.010'
+   "$]" >= 5.010
      or plan skip_all => 'Perl 5.10 or higher required';
    require Test::Prereq::Meta;
-   Test::Prereq::Meta->import();
+   Test::Prereq::Meta->import( 'prereq_ok' );
  }
  
  prereq_ok();
@@ -382,10 +382,11 @@ its own file:
  done_testing();
 
 The C<BEGIN{}> block is so that the rest of the code sees the import. If
-you do not need this you can dispense with it.
+you do not need this you can dispense with both the import and the
+C<BEGIN> block.
 
 There are no exports by default, but anything so documented can be
-exported, and export tag C<:all> exports everything.
+exported, and export tag C<:all> exports everything exportable.
 
 =head1 METHODS
 
@@ -451,6 +452,9 @@ This argument specifies the note to be inserted before the tests of each
 file. A value of C<''> suppresses the note.  This argument defines the
 same substitutions as L<name|/name>, except that C<%m> is undefined.
 
+This note will be indented so as to align with the names of subsequent
+tests, if any.
+
 The default value is C<'%f'>.
 
 =item perl_version
@@ -472,7 +476,8 @@ L<'accept'|/accept> list).
 
 =item this
 
-This is equivalent to specifying the value of C<$]>.
+This specifies the version of Perl that is running the test, and is
+equivalent to specifying the value of C<$]>.
 
 =back
 
@@ -496,7 +501,8 @@ The specifications are matched against the file names reported by
 L<File::Find|File::Find> (normalized to POSIX form) and are relative to
 the distribution directory.
 
-For portability, files must be specified in POSIX syntax.
+For portability, files must be specified in POSIX syntax, and relative
+to the directory containing the distribution.
 
 =item skip_name
 
@@ -579,7 +585,9 @@ anything that parses as a
 L<PPI::Statement::Include|PPI::Statement::Include> (with special-case
 code for C<use base> and C<use parent>), plus a good effort to find
 C<require()> calls that are embedded in other statements. It does not
-(as of this writing) include modules loaded by C<use if>.
+(as of this writing) include modules loaded by C<use if>,
+L<Module::Load|Module::Load>, or
+L<Module::Load::Conditional|Module::Load::Conditional>.
 
 This module also relies on the meta data including C<'provides'>
 information. It seems to me that L<Module::Build|Module::Build> has
@@ -589,9 +597,10 @@ L<ExtUtils::MakeMaker|ExtUtils::MakeMaker>.
 =head1 SEE ALSO
 
 L<Test::Prereq|Test::Prereq> by Brian D. Foy, which intercepts the
-L<ExtUtils::MakeMaker|ExtUtils::MakeMaker> C<WriteMakefile()> or
-L<Module::Build|Module::Build> C<new()> calls to figure out what
-dependencies have been declared.
+L<ExtUtils::MakeMaker|ExtUtils::MakeMaker> C<WriteMakefile()>, or
+L<Test::Prereq::Build|Test::Prereq::Build> (same distribution) which
+intercepts L<Module::Build|Module::Build> C<new()> calls to figure out
+what dependencies have been declared.
 
 =head1 SUPPORT
 
