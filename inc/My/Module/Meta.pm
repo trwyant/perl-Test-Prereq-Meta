@@ -74,6 +74,7 @@ sub requires {
 	'File::Spec'	=> 0,
 	'Module::CoreList'	=> 0,
 	'Module::Extract::Use'	=> 0,
+	'Module::Metadata'	=> 0,
 	constant	=> 0,
 	strict		=> 0,
 	warnings	=> 0,

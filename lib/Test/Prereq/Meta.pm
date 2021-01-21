@@ -85,8 +85,13 @@ sub new {
 
     # The above is pretty much verbatim from the CPAN::Meta synopsis
 
-    my $provides = $meta_data->provides()
-	or croak 'Meta data does not say what modules are provided';
+    my $provides = $meta_data->provides() || do {
+	require Module::Metadata;
+	Module::Metadata->provides(
+	    version	=> 2,
+	    dir		=> 'blib/lib',
+	);
+    };
 
     my %has = map { $_ => 1 }
 	@{ $arg{accept} },
