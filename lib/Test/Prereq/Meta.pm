@@ -40,25 +40,19 @@ sub new {
     $arg{perl_version} //= 'none';
     $arg{skip_name} //= 'Prereq test: %f does not use any modules';
 
-    state $array_default = {
+    state $default = {
 	accept	=> [],
 	meta_file	=> [ qw{
 	    MYMETA.json MYMETA.yml META.json META.yml } ],
 	prune	=> [],
     };
-    foreach my $name ( keys %{ $array_default } ) {
-	$arg{$name} //= $array_default->{$name};
-	ref $arg{$name}
-	    or $arg{$name} = [ $arg{$name} ];
-	REF_ARRAY eq ref $arg{$name}
-	    or croak( "'$name' must be a SCALAR or ARRAY reference" );
-	my $code;
-	$code = __PACKAGE__->can( "__validate_$name" )
-	    and $arg{$name} = $code->( $name, \%arg );
+    foreach my $name ( keys %{ $default } ) {
+	$arg{$name} //= $default->{$name};
+	my $code = __PACKAGE__->can( "__validate_$name" ) ||
+	    __PACKAGE__->can( '__validate_' . ref $default->{$name} ) ||
+	    sub { $_[0] };
+	$code->( $name, \%arg );
     }
-
-    REF_ARRAY eq ref $arg{accept}
-	or croak( q<'accept' must be an ARRAY reference> );
 
     my $core_modules;
     {
@@ -313,11 +307,14 @@ sub _unpack_args {
 
 sub __validate_meta_file {
     my ( $name, $arg ) = @_;
+    __validate_ARRAY( $name, $arg );
     @{ $arg->{$name} }
 	or croak( "'$name' must specify at least one file" );
     foreach my $fn ( @{ $arg->{$name} } ) {
 	-r $fn
-	    and return $fn;
+	    or next;
+	$arg->{$name} = $fn;
+	return;
     }
     1 == @{ $arg }
 	and croak( "$arg->{$name}[0] not readable" );
@@ -327,6 +324,7 @@ sub __validate_meta_file {
 
 sub __validate_prune {
     my ( $name, $arg ) = @_;
+    __validate_ARRAY( $name, $arg );
     my %rslt;
     foreach ( @{ $arg->{$name} } ) {
 	$arg->{_normalize_path} ||= __PACKAGE__->can(
@@ -336,7 +334,17 @@ sub __validate_prune {
 	$rslt{$_} = 1;
     }
     $arg->{_normalize_path} ||= undef;
-    return \%rslt;
+    $arg->{$name} = \%rslt;
+    return;
+}
+
+sub __validate_ARRAY {
+    my ( $name, $arg ) = @_;
+    ref $arg->{$name}
+	or $arg->{$name} = [ $arg->{$name} ];
+    REF_ARRAY eq ref $arg->{$name}
+	or croak( "'$name' must be a SCALAR or an ARRAY reference" );
+    return;
 }
 
 1;
