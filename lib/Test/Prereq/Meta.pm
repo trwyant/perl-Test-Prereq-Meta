@@ -364,8 +364,11 @@ by Brian D. Foy's L<Test::Prereq|Test::Prereq>, and like it uses
 L<Module::Extract::Use|Module::Extract::Use> to determine what modules a
 given Perl script/module needs. But unlike L<Test::Prereq|Test::Prereq>
 this module loads prerequisites from the distribution's meta data file
-(hence the module's name) using L<CPAN::Meta|CPAN::Meta>, and is thus
+(hence this module's name) using L<CPAN::Meta|CPAN::Meta>, and is thus
 independent of the distribution's build mechanism.
+
+Each file tested has a test generated for each distinct module used. If
+a file uses no modules, a skipped test is generated.
 
 B<Note> that this package requires Perl 5.10, a requirement it inherits
 from L<Module::Extract::Use|Module::Extract::Use>. If you are writing a
@@ -375,20 +378,14 @@ its own file:
 
  use Test::More 0.88; # For done_testing();
  
- BEGIN {
-   "$]" >= 5.010
-     or plan skip_all => 'Perl 5.10 or higher required';
-   require Test::Prereq::Meta;
-   Test::Prereq::Meta->import( 'prereq_ok' );
- }
+ "$]" >= 5.010
+   or plan skip_all => 'Perl 5.10 or higher required';
+ require Test::Prereq::Meta;
+ Test::Prereq::Meta->import( 'prereq_ok' );
  
  prereq_ok();
  
  done_testing();
-
-The C<BEGIN{}> block is so that the rest of the code sees the import. If
-you do not need this you can dispense with both the import and the
-C<BEGIN> block.
 
 There are no exports by default, but anything so documented can be
 exported, and export tag C<:all> exports everything exportable.
@@ -497,17 +494,14 @@ change this in incompatible ways with little (or no) notice, or retract
 it completely. B<Caveat coder.>
 
 This argument specifies the names of files to prune from the scan done
-by L<all_prereq_ok()|/all_prereq_ok>. In the case of directories (which
-is the anticipated use) all files in the directory will also be ignored.
-A single file can be specified as a scalar; otherwise the value is a
-reference to an array of file names.
+by L<all_prereq_ok()|/all_prereq_ok>. The specification is in POSIX
+form, relative to the distribution directory. In the case of directories
+(which is the anticipated use) all files in the directory will also be
+ignored.  A single file can be specified as a scalar; otherwise the
+value is a reference to an array of file names.
 
 The specifications are matched against the file names reported by
-L<File::Find|File::Find> (normalized to POSIX form) and are relative to
-the distribution directory.
-
-For portability, files must be specified in POSIX syntax, and relative
-to the directory containing the distribution.
+L<File::Find|File::Find> (normalized to POSIX form).
 
 =item skip_name
 
@@ -589,23 +583,29 @@ cause a module to be loaded. As of this writing this appears to be
 anything that parses as a
 L<PPI::Statement::Include|PPI::Statement::Include> (with special-case
 code for C<use base> and C<use parent>), plus a good effort to find
-C<require()> calls that are embedded in other statements. It does not
-(as of this writing) include modules loaded by C<use if>,
-L<Module::Load|Module::Load>, or
-L<Module::Load::Conditional|Module::Load::Conditional>.
+C<require()> calls that are embedded in other statements.
 
-This module also relies on the meta data including C<'provides'>
-information. It seems to me that L<Module::Build|Module::Build> has
-had this for ages, but that it might require a fairly new version of
-L<ExtUtils::MakeMaker|ExtUtils::MakeMaker>.
+This module uses the meta data C<'provides'> information to determine
+what modules are provided by the distribution. If this is absent, it
+uses L<Module::Metadata|Module::Metadata> to determine provided modules
+directly from F<blib/lib/>.
 
 =head1 SEE ALSO
+
+L<Test::Dependencies|Test::Dependencies> by Erik Huelsmann, which
+expects to receive dependencies in a L<CPAN::Meta|CPAN::Meta> object,
+and scans a list of files provided by the user. Internally, it uses
+L<Pod::Strip|Pod::Strip> to remove POD, and then regular expressions to
+find C<use()>, C<with()>, C<extends()>, and C<use base> statements.
 
 L<Test::Prereq|Test::Prereq> by Brian D. Foy, which intercepts the
 L<ExtUtils::MakeMaker|ExtUtils::MakeMaker> C<WriteMakefile()>, or
 L<Test::Prereq::Build|Test::Prereq::Build> (same distribution) which
 intercepts L<Module::Build|Module::Build> C<new()> calls to figure out
-what dependencies have been declared.
+what dependencies have been declared. It uses
+L<Module::Extract::Use|Module::Extract::Use> (and ultimately L<PPI|PPI>)
+to find C<use()>, C<no()>, C<require()>, C<use base> and C<use parent>
+statements.
 
 =head1 SUPPORT
 

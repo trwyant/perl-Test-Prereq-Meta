@@ -22,6 +22,7 @@ all_pod_files_spelling_ok ();
 __DATA__
 ASCIIbetical
 Foy
+Huelsmann
 merchantability
 PPI
 VMS
