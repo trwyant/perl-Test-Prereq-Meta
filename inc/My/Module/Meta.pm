@@ -75,6 +75,7 @@ sub requires {
 	'Module::CoreList'	=> 0,
 	'Module::Extract::Use'	=> 0,
 	'Module::Metadata'	=> 0,
+	'Scalar::Util'	=> 0,
 	constant	=> 0,
 	strict		=> 0,
 	warnings	=> 0,

@@ -12,6 +12,7 @@ use File::Find;
 use File::Spec;
 use Module::Extract::Use;
 use Module::CoreList;
+use Scalar::Util ();
 use Test::More 0.88;
 
 our $VERSION = '0.000_007';
@@ -65,7 +66,7 @@ sub new {
 
     # The below is pretty much verbatim from the CPAN::Meta synopsis
 
-    my $meta_data = CPAN::Meta->load_file( $arg{meta_file} );
+    my $meta_data = $arg{_meta_file};
 
     my %requires;
 
@@ -307,6 +308,12 @@ sub _unpack_args {
 
 sub __validate_meta_file {
     my ( $name, $arg ) = @_;
+    if ( Scalar::Util::blessed( $arg->{$name} ) &&
+	$arg->{$name}->isa( 'CPAN::Meta' )
+    ) {
+	$arg->{"_$name"} = $arg->{$name};
+	return;
+    }
     __validate_ARRAY( $name, $arg );
     @{ $arg->{$name} }
 	or croak( "'$name' must specify at least one file" );
@@ -314,6 +321,7 @@ sub __validate_meta_file {
 	-r $fn
 	    or next;
 	$arg->{$name} = $fn;
+	$arg->{"_$name"} = CPAN::Meta->load_file( $fn );
 	return;
     }
     1 == @{ $arg }
@@ -431,6 +439,8 @@ The default is
  [ qw{ MYMETA.json MYMETA.yml META.json META.yml } ]
 
 An exception will be thrown if none of the specified files is readable.
+
+This argument can also be a L<CPAN::Meta|CPAN::Meta> object.
 
 =item name
 

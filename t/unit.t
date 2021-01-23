@@ -5,6 +5,7 @@ use 5.010;
 use strict;
 use warnings;
 
+use CPAN::Meta;
 use Test::More 0.88;	# Because of done_testing();
 use Test::Prereq::Meta;
 
@@ -38,6 +39,12 @@ Test::Prereq::Meta->new(
 Test::Prereq::Meta->new(
     meta_file	=> 't/data/accept/META.json',
     name	=> 'Unlisted core prereq: %f uses %m',
+    perl_version	=> 'this',
+)->all_prereq_ok( 't/data/accept/lib' );
+
+Test::Prereq::Meta->new(
+    meta_file	=> CPAN::Meta->load_file( 't/data/accept/META.json' ),
+    name	=> 'Prereq via CPAN::Meta object: %f uses %m',
     perl_version	=> 'this',
 )->all_prereq_ok( 't/data/accept/lib' );
 
