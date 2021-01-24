@@ -1,3 +1,6 @@
+0.000_008	2021-01-24	T. R. Wyant
+    Allow a CPAN::Meta object for meta_file argument
+
 0.000_007	2021-01-21	T. R. Wyant
     Test ability to generate own provides() info
 
