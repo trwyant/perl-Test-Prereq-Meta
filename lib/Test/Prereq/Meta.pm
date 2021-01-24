@@ -442,6 +442,13 @@ An exception will be thrown if none of the specified files is readable.
 
 This argument can also be a L<CPAN::Meta|CPAN::Meta> object.
 
+B<Caveat:> I am unsure what the correct search order should be among the
+meta files. For the purposes of this module F<.json> and F<.yml> should
+provide equivalent information, but F<MYMETA.*> may not be equivalent to
+F<META.*>. I have placed F<MYMETA.*> first because it is easier to
+regenerate, but this may change if some compelling reason to change
+emerges.
+
 =item name
 
 This argument specifies the name of the tests generated.
