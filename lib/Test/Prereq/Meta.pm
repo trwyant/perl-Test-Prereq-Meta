@@ -361,7 +361,7 @@ __END__
 
 =head1 NAME
 
-Test::Prereq::Meta - Test distribution prerequisites against meta data.
+Test::Prereq::Meta - Test distribution prerequisites against CPAN meta data file.
 
 =head1 SYNOPSIS
 
@@ -528,6 +528,8 @@ value is a reference to an array of file names.
 The specifications are matched against the file names reported by
 L<File::Find|File::Find> (normalized to POSIX form).
 
+The default is C<[]>, i.e. prune nothing.
+
 =item skip_name
 
 This argument specifies the name of any skipped tests. It defines the
@@ -589,8 +591,6 @@ for compatibility with L<Test::Prereq|Test::Prereq>.
 
 This subroutine returns a true value if all tests either passed or
 skipped, or a false value if any test failed.
-
-This subroutine is not exported by default.
 
 =head1 BUGS/RESTRICTIONS
 
