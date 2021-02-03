@@ -35,6 +35,7 @@ sub new {
     # NOTE that {path_type} is unsupported, and may change or be
     # retracted without warning. I thought I needed it to support
     # argument {prune}, which is itself experimental.
+    $arg{file_error} //= 'Failed to analyze %f: %e';
     $arg{name} //= 'Prereq test: %f uses %m';
     $arg{path_type} //= DEFAULT_PATH_TYPE;
     $arg{per_file_note} //= '%f';
@@ -99,6 +100,7 @@ sub new {
     return bless {
 	# accept		=> $arg{accept},
 	# core_modules	=> $core_modules,
+	file_error	=> $arg{file_error},
 	has		=> \%has,
 	meta_file	=> $arg{meta_file},
 	meta_data	=> $meta_data,
@@ -187,9 +189,24 @@ sub file_prereq_ok {
 
     state $extor = Module::Extract::Use->new();
 
+    my $modules = $extor->get_modules_with_details( $file );
+    if ( my $err = $extor->error() ) {
+	local $Test::Builder::Level = _nest_depth();
+	$TEST->ok( 0,
+	    _format(
+		$self->{file_error},
+		{
+		    e	=> $err,
+		    f	=> $file,
+		},
+	    )
+	);
+	return 0;
+    }
+
     foreach my $usage (
 	sort { $a->{module} cmp $b->{module} }
-	@{ $extor->get_modules_with_details( $file ) }
+	@{ $modules }
     ) {
 	local $Test::Builder::Level = _nest_depth();
 	my $module = $usage->{module};
@@ -427,6 +444,32 @@ module names. These modules will be passed even if they are not listed
 as prerequisites.
 
 The default is C<[]>, that is, a reference to an empty array.
+
+=item file_error
+
+This argument specifies the name of the failing test that is generated
+if some error is encountered by
+L<Module::Extract::Use|Module::Extract::Use>.
+
+Selected data can be substituted into the given name for each specific
+test. Substitutions are introduced by the C<'%'> character. The
+following substitutions are defined:
+
+=over
+
+=item C<'%e'> substitutes the error text;
+
+=item C<'%f'> substitutes the name of the file being tested;
+
+=item C<'%%'> substitutes a literal C<'%'>.
+
+=back
+
+All other substitutions are undefined in the formal sense that the
+author makes no commitment as to what they do, and whatever they do the
+author reserves the right to change it without notice.
+
+The default value is C<'Failed to analyze %f: %e'>.
 
 =item meta_file
 

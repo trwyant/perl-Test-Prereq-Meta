@@ -16,6 +16,16 @@ $tpm->file_prereq_ok( 't/basic.t' );
 
 $tpm->file_prereq_ok( 't/data/hello_world.PL' );
 
+{
+    my $rslt = 1;
+    TODO: {
+	local $TODO = 'Intentional failure';
+	$rslt = $tpm->file_prereq_ok( 't/data/non-existent.PL' );
+    }
+
+    ok( ! $rslt, 'Non-existent file generated a failure.' );
+}
+
 done_testing();
 
 1;
