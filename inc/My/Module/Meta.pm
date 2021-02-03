@@ -73,7 +73,7 @@ sub requires {
 	'File::Find'	=> 0,
 	'File::Spec'	=> 0,
 	'Module::CoreList'	=> 0,
-	'Module::Extract::Use'	=> 0,
+	'Module::Extract::Use'	=> 1.045,	# want [] if no use stmt
 	'Module::Metadata'	=> 0,
 	'Scalar::Util'	=> 0,
 	constant	=> 0,
