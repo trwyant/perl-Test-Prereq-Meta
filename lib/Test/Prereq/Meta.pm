@@ -15,7 +15,7 @@ use Module::CoreList;
 use Scalar::Util ();
 use Test::More 0.88;
 
-our $VERSION = '0.000_90';
+our $VERSION = '0.000_91';
 
 our @EXPORT_OK = qw{ all_prereq_ok file_prereq_ok prereq_ok };
 our %EXPORT_TAGS = (

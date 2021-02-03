@@ -1,2 +1,10 @@
+0.000_91	2021-02-03	T. R. Wyant
+    Add new() argument 'file_error'. This is a test name template to be
+    used if Module::Extract::Use failed to process the given file.
+
+    Require Module::Extract::Use 1.045 because in that version
+    get_modules_with_details() returns an array reference even if no
+    'use' or 'require' statements were found.
+
 0.000_90	2021-02-01	T. R. Wyant
     Initial release to CPAN
