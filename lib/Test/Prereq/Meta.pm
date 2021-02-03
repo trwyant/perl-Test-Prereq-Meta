@@ -177,7 +177,9 @@ sub file_prereq_ok {
 	    _format(
 		$self->{per_file_note},
 		{
+		    e	=> '',
 		    f	=> $file,
+		    m	=> '',
 		}
 	    ),
 	);
@@ -198,6 +200,7 @@ sub file_prereq_ok {
 		{
 		    e	=> $err,
 		    f	=> $file,
+		    m	=> '',
 		},
 	    )
 	);
@@ -229,6 +232,7 @@ sub file_prereq_ok {
 	    _format(
 		$self->{name},
 		{
+		    e	=> '',
 		    f	=> $file,
 		    m	=> $module,
 		},
@@ -243,7 +247,9 @@ sub file_prereq_ok {
 	$TEST->skip( _format(
 		$self->{skip_name},
 		{
+		    e	=> '',
 		    f	=> $file,
+		    m	=> '',
 		},
 	    ),
 	);
@@ -447,27 +453,12 @@ The default is C<[]>, that is, a reference to an empty array.
 
 =item file_error
 
-This argument specifies the name of the failing test that is generated
-if some error is encountered by
+This argument specifies the template for the name of the failing test
+that is generated if some error is encountered by
 L<Module::Extract::Use|Module::Extract::Use>.
 
-Selected data can be substituted into the given name for each specific
-test. Substitutions are introduced by the C<'%'> character. The
-following substitutions are defined:
-
-=over
-
-=item C<'%e'> substitutes the error text;
-
-=item C<'%f'> substitutes the name of the file being tested;
-
-=item C<'%%'> substitutes a literal C<'%'>.
-
-=back
-
-All other substitutions are undefined in the formal sense that the
-author makes no commitment as to what they do, and whatever they do the
-author reserves the right to change it without notice.
+See below for the defined substitutions into the template. The C<'%m'>
+substitution is not relevant to this template.
 
 The default value is C<'Failed to analyze %f: %e'>.
 
@@ -494,36 +485,22 @@ emerges.
 
 =item name
 
-This argument specifies the name of the tests generated.
+This argument specifies the template for the name of the tests generated.
 
-Selected data can be substituted into the given name for each specific
-test. Substitutions are introduced by the C<'%'> character. The
-following substitutions are defined:
-
-=over
-
-=item C<'%f'> substitutes the name of the file being tested;
-
-=item C<'%m'> substitutes the name of the module being required;
-
-=item C<'%%'> substitutes a literal C<'%'>.
-
-=back
-
-All other substitutions are undefined in the formal sense that the
-author makes no commitment as to what they do, and whatever they do the
-author reserves the right to change it without notice.
+See below for the defined substitutions into the template. The C<'%e'>
+substitution is not relevant to this template.
 
 The default value is C<'Prereq test: %f uses %m'>.
 
 =item per_file_note
 
-This argument specifies the note to be inserted before the tests of each
-file. A value of C<''> suppresses the note.  This argument defines the
-same substitutions as L<name|/name>, except that C<%m> is undefined.
+This argument specifies the template for the note to be inserted before
+the tests of each file. This note will be indented so as to align with
+the names of subsequent tests, if any. A value of C<''> suppresses the
+note.
 
-This note will be indented so as to align with the names of subsequent
-tests, if any.
+See below for the defined substitutions into the template. The C<'%m'>
+and C<'%e'> substitutions are not relevant to this template.
 
 The default value is C<'%f'>.
 
@@ -575,12 +552,40 @@ The default is C<[]>, i.e. prune nothing.
 
 =item skip_name
 
-This argument specifies the name of any skipped tests. It defines the
-same substitutions as L<name|/name>, except that C<%m> is undefined.
+This argument specifies the template for the name of any skipped tests.
+
+See below for the defined substitutions into the template. The C<'%m'>
+and C<'%e'> substitutions are not relevant to this template.
 
 The default value is C<'Prereq test: %f does not use any modules'>.
 
 =back
+
+Arguments C<'file_error'>, C<'name'>, C<'per_file_note'>, and
+C<'skip_name'> are templates for generating the actual text to be
+emitted. Selected data can be substituted into the template.
+Substitutions are introduced by the C<'%'> character. The following
+substitutions are defined:
+
+=over
+
+=item C<'%e'> substitutes the most-recent L<Module::Extract::Use|Module::Extract::Use> error.
+
+=item C<'%f'> substitutes the name of the file being tested;
+
+=item C<'%m'> substitutes the name of the module being required;
+
+=item C<'%%'> substitutes a literal C<'%'>.
+
+=back
+
+All other substitutions are undefined in the formal sense that the
+author makes no commitment as to what they do, and whatever they do the
+author reserves the right to change it without notice.
+
+Not all defined substitutions are relevant in all cases. In such cases
+you will generally get C<''> substituted, though the author may change
+this if someone makes a case for it.
 
 =head2 all_prereq_ok
 
