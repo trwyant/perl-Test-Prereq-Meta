@@ -26,6 +26,11 @@ $tpm->file_prereq_ok( 't/data/hello_world.PL' );
     ok( ! $rslt, 'Non-existent file generated a failure.' );
 }
 
+$tpm = Test::Prereq::Meta->new(
+    perl_version	=> $],	# So we accept ExtUtils::MakeMaker
+);
+$tpm->file_prereq_ok( 'Makefile.PL' );
+
 done_testing();
 
 1;

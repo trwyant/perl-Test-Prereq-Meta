@@ -12,6 +12,7 @@ use File::Find;
 use File::Spec;
 use Module::Extract::Use;
 use Module::CoreList;
+use Module::Metadata;
 use Scalar::Util ();
 use Test::More 0.88;
 
@@ -82,17 +83,39 @@ sub new {
     # The above is pretty much verbatim from the CPAN::Meta synopsis
 
     my $provides = $meta_data->provides() || do {
-	require Module::Metadata;
 	Module::Metadata->provides(
 	    version	=> 2,
 	    dir		=> 'blib/lib',
 	);
     };
 
+    # Pick up the un-indexed stuff that might nonetheless be used.
+    my %un_indexed;
+    {
+	my $no_index = $meta_data->no_index() || {};
+	foreach my $dir ( @{ $no_index->{directory} || [] } ) {
+	    my $p = Module::Metadata->provides(
+		version	=> 2,
+		dir	=> $dir,
+	    );
+	    @un_indexed{ keys %{ $p } } = values %{ $p };
+	}
+	if ( $no_index->{file} ) {
+	    my $p = Module::Metadata->package_versions_from_directory(
+		'.'. $no_index->{file} );
+	    @un_indexed{ keys %{ $p } } = values %{ $p };
+	}
+	$no_index->{package}
+	    and @un_indexed{ @{ $no_index->{package} } } =
+		@{ $no_index->{package} };
+	# Don't know what to do with {namespace}
+    }
+
     my %has = map { $_ => 1 }
 	@{ $arg{accept} },
 	keys %{ $core_modules },
 	keys %{ $provides },
+	keys %un_indexed,
 	keys %requires,
 	;
     delete $has{perl};
