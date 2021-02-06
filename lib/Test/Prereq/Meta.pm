@@ -10,7 +10,6 @@ use CPAN::Meta;
 use Exporter qw{ import };
 use ExtUtils::Manifest ();
 use File::Find ();
-use File::Spec;
 use Module::Extract::Use;
 use Module::CoreList;
 use Module::Metadata;
@@ -24,10 +23,17 @@ our %EXPORT_TAGS = (
     all	=> \@EXPORT_OK,
 );
 
-use constant DEFAULT_PATH_TYPE	=> do {
-    ( my $path_type = $File::Spec::ISA[0] ) =~ s/ .* :: //smx;
-    $path_type;
-};
+# Hash lifted verbatim from File::Spec 3.78 published 2018-08-29
+use constant DEFAULT_PATH_TYPE	=> {
+    MSWin32 => 'Win32',
+    os2     => 'OS2',
+    VMS     => 'VMS',
+    NetWare => 'Win32', # Yes, File::Spec::Win32 works on NetWare.
+    symbian => 'Win32', # Yes, File::Spec::Win32 works on symbian.
+    dos     => 'OS2',   # Yes, File::Spec::OS2 works on DJGPP.
+    cygwin  => 'Cygwin',
+    amigaos => 'AmigaOS',
+}->{$^O} || 'Unix';
 
 use constant REF_ARRAY	=> ref [];
 
