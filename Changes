@@ -1,3 +1,10 @@
+0.000_912	2021-02-06	T. R. Wyant
+    Base provided modules on .pm files in MANIFEST because
+    Module::Metadata->provides() strains out private modules. This is
+    the correct behavior for CPAN indexing, but if private modules are
+    in fact used, this module needs to know that they are provided. This
+    means I no longer need to grovel though the no_index metadata.
+
 0.000_911	2021-02-05	T. R. Wyant
     Pick up modules from the no_index metadata, since presumably they
     come with the distro and therefore do not need to be declared as
