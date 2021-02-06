@@ -19,6 +19,7 @@ my $dump;
 
 GetOptions( \%opt,
     qw{
+	cd|C=s
 	file_prereq_ok|file-prereq-ok!
 	meta_file|meta-file=s@
 	name=s
@@ -27,6 +28,11 @@ GetOptions( \%opt,
     },
     help	=> sub { pod2usage( { -verbose => 2 } ) },
 ) or pod2usage( { -verbose => 0 } );
+
+if ( defined $opt{cd} ) {
+    chdir $opt{cd}
+	or die "Unable to cd to $opt{cd}: $!\n";
+}
 
 my $tpm = Test::Prereq::Meta->new(
     meta_file		=> $opt{meta_file},
@@ -53,11 +59,23 @@ test-prereq-meta - Test whether all required modules are listed in the distribut
 
  test-prereq-meta
  test-prereq-meta fubar.pm
- test-prereq-meta 'L<Foobar|Foo/bar>'
+ test-prereq-meta Foo/bar
  test-prereq-meta -help
  test-prereq-meta -version
 
 =head1 OPTIONS
+
+=head2 --cd
+
+ --cd ../Fubar
+
+Run the tests against files from the specified directory.
+
+By default they are run against files from the current directory.
+
+=head2 --C
+
+This is a synonym for C<--cd>, provided for compatibility with Git.
 
 =head2 --file-prereq-ok
 
