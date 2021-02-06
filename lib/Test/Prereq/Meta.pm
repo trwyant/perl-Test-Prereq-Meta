@@ -8,7 +8,8 @@ use warnings;
 use Carp;
 use CPAN::Meta;
 use Exporter qw{ import };
-use File::Find;
+use ExtUtils::Manifest ();
+use File::Find ();
 use File::Spec;
 use Module::Extract::Use;
 use Module::CoreList;
@@ -82,40 +83,12 @@ sub new {
 
     # The above is pretty much verbatim from the CPAN::Meta synopsis
 
-    my $provides = $meta_data->provides() || do {
-	Module::Metadata->provides(
-	    version	=> 2,
-	    dir		=> 'blib/lib',
-	);
-    };
-
-    # Pick up the un-indexed stuff that might nonetheless be used.
-    my %un_indexed;
-    {
-	my $no_index = $meta_data->no_index() || {};
-	foreach my $dir ( @{ $no_index->{directory} || [] } ) {
-	    my $p = Module::Metadata->provides(
-		version	=> 2,
-		dir	=> $dir,
-	    );
-	    @un_indexed{ keys %{ $p } } = values %{ $p };
-	}
-	if ( $no_index->{file} ) {
-	    my $p = Module::Metadata->package_versions_from_directory(
-		'.'. $no_index->{file} );
-	    @un_indexed{ keys %{ $p } } = values %{ $p };
-	}
-	$no_index->{package}
-	    and @un_indexed{ @{ $no_index->{package} } } =
-		@{ $no_index->{package} };
-	# Don't know what to do with {namespace}
-    }
+    my $provides = _provides();
 
     my %has = map { $_ => 1 }
 	@{ $arg{accept} },
 	keys %{ $core_modules },
 	keys %{ $provides },
-	keys %un_indexed,
 	keys %requires,
 	;
     delete $has{perl};
@@ -343,6 +316,26 @@ sub __normalize_path_VMS {
 }
 
 sub __normalize_path_Win32 { s| \\ |/|smxg; }	## no critic (RequireFinalReturn)
+
+# We don't use Module::Metadata->provides(), because it filters out
+# private methods. While we're at it, we just process every .pm we find.
+sub _provides {
+    my %provides;
+    my $manifest = ExtUtils::Manifest::maniread();
+    foreach my $file ( keys %{ $manifest } ) {
+	$file =~ m/ [.] pm \z /smx
+	    or next;
+	my $info = Module::Metadata->new_from_file( $file )
+	    or next;
+	foreach my $module ( $info->packages_inside() ) {
+	    state $ignore = { map { $_ => 1 } qw{ main DB } };
+	    $ignore->{$module}
+		and next;
+	    $provides{$module} = 1;
+	}
+    }
+    return \%provides;
+}
 
 sub _unpack_args {
     my @arg = @_;
@@ -639,10 +632,24 @@ one instantiated with no arguments.
 This method takes as argument exactly one file name. This is assumed to
 be a Perl file, and all modules required by it (by C<require()>,
 C<use()>, C<use base>, or C<use parent>) are checked against the
-requirements specified in the meta data, in ASCIIbetical order. Modules
-which appear in the prerequisites generate a passing test. Modules which
-do not appear in the prerequisites generate a failing test. If the file
-does not require any modules, a skipped test is generated.
+requirements specified in the meta data, in ASCIIbetical order. A
+passing test is generated if the module meets one of the following
+criteria:
+
+=over
+
+=item it is listed in the distribution's prerequisites
+
+=item it is provided by a F<.pm> file listed in the distribution's F<MANIFEST>.
+
+=item it is listed in the C<accept> argument to L<new()|/new>.
+
+=item it is a core module in the specified version of Perl, if any.
+
+=back
+
+Otherwise a failing test will be generated. If the file does not require
+any modules, a skipped test is generated.
 
 This method returns a true value if all tests either passed or skipped,
 or a false value if any test failed.

@@ -70,8 +70,9 @@ sub requires {
 	'Carp'		=> 0,
 	'CPAN::Meta'	=> 0,
 	'Exporter'	=> 0,
-	'File::Find'	=> 0,
-	'File::Spec'	=> 0,
+	'ExtUtils::Manifest'	=> 0,
+	'File::Find'		=> 0,
+	'File::Spec'		=> 0,
 	'Module::CoreList'	=> 0,
 	'Module::Extract::Use'	=> 1.045,	# want [] if no use stmt
 	'Module::Metadata'	=> 0,
