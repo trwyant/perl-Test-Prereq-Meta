@@ -1,3 +1,8 @@
+0.000_911	2021-02-05	T. R. Wyant
+    Pick up modules from the no_index metadata, since presumably they
+    come with the distro and therefore do not need to be declared as
+    dependencies.
+
 0.000_91	2021-02-03	T. R. Wyant
     Add new() argument 'file_error'. This is a test name template to be
     used if Module::Extract::Use failed to process the given file.
