@@ -65,6 +65,20 @@ Test::Prereq::Meta->new(
 
 Test::Prereq::Meta::file_prereq_ok( 't/data/rogue_require' );
 
+{
+    my $builder = Test::More->builder();
+    my $diag;
+    $builder->failure_output( \$diag );
+    Test::Prereq::Meta->new(
+	accept	=> [ qw{ CPAN::Meta } ],
+    );
+    $builder->reset_outputs();
+    is $diag, <<'EOD', 'Got diagnostic on accept of prerequisite';
+# The following module appears in both the prerequisites and
+# the 'accept' argument: CPAN::Meta
+EOD
+}
+
 done_testing;
 
 1;

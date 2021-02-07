@@ -99,6 +99,13 @@ sub new {
 	;
     delete $has{perl};
 
+    if ( my @dup = grep { $requires{$_} } @{ $arg{accept} } ) {
+	diag "The following @{[
+	    @dup == 1 ? 'module appears' : 'modules appear'
+	    ]} in both the prerequisites and\nthe 'accept' argument: ",
+	    join ', ', @dup;
+    }
+
     return bless {
 	# accept		=> $arg{accept},
 	# core_modules	=> $core_modules,
@@ -324,7 +331,7 @@ sub __normalize_path_VMS {
 sub __normalize_path_Win32 { s| \\ |/|smxg; }	## no critic (RequireFinalReturn)
 
 # We don't use Module::Metadata->provides(), because it filters out
-# private methods. While we're at it, we just process every .pm we find.
+# private packages. While we're at it, we just process every .pm we find.
 sub _provides {
     my %provides;
     my $manifest = ExtUtils::Manifest::maniread();
@@ -469,7 +476,9 @@ as name/value pairs:
 
 This argument is the name of a module, or a reference to an array of
 module names. These modules will be passed even if they are not listed
-as prerequisites.
+as prerequisites. However, if any module listed here is found in the
+prerequisites, a diagnostic will be generated when the object is
+instantiated.
 
 The default is C<[]>, that is, a reference to an empty array.
 
