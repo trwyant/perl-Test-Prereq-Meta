@@ -1,3 +1,13 @@
+0.000_913	2021-02-07	T. R. Wyant
+    Delete eg/prereq.t. Instead, refer to t/prereq.t
+
+    Add method all_prereqs_used() which gets called after all code
+    prerequisites have been analyzed.
+
+    Diagnostic if 'accept' entry is prerequisite.
+
+    Add --accepts option to eg/test-prereq-meta
+
 0.000_912	2021-02-06	T. R. Wyant
     Base provided modules on .pm files in MANIFEST because
     Module::Metadata->provides() strains out private modules. This is
