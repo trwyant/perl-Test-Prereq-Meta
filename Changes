@@ -1,3 +1,8 @@
+0.000_914	2021-02-07	T. R. Wyant
+    Add new() argument 'uses'. Modules specified with 'uses' are
+    presumed by all_prereqs_used() to have been used, even if no use of
+    them was found.
+
 0.000_913	2021-02-07	T. R. Wyant
     Delete eg/prereq.t. Instead, refer to t/prereq.t
 
