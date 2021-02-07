@@ -83,7 +83,7 @@ sub new {
     foreach my $phase ( qw{ configure build test runtime } ) {
 	my $reqs = $prereqs->requirements_for( $phase, 'requires' );
 	foreach my $module ( $reqs->required_modules() ) {
-	    $requires{$module} = 1;
+	    $requires{$module} = {};
 	}
     }
 
@@ -118,9 +118,9 @@ sub new {
 	perl_version	=> $arg{perl_version},
 	prune		=> $arg{prune},
 	# provides	=> $provides,
-	# requires	=> \%requires,
 	skip_name	=> $arg{skip_name},
 	_normalize_path	=> $arg{_normalize_path},
+	_requires	=> \%requires,
     }, ref $class || $class;
 }
 
@@ -163,6 +163,23 @@ sub all_prereq_ok {
     }
 
     return $ok;
+}
+
+sub all_prereqs_used {
+    my ( $self ) = @_;
+
+    state $TEST = Test::More->builder();
+    local $Test::Builder::Level = _nest_depth();
+
+    state $skip = { map { $_ => 1 } qw{ perl } };
+
+    my @unused = grep { ! $skip->{$_} && ! $self->{_requires}{$_}{file} }
+	sort keys %{ $self->{_requires} };
+    my $rslt = $TEST->ok( ! @unused, 'All required modules are used' )
+	or $TEST->diag( "The following @{[
+	    @unused == 1 ? 'prerequisite is' : 'prerequisites are'
+	    ]} unused: ", join ', ', @unused );
+    return $rslt;
 }
 
 sub file_prereq_ok {
@@ -234,6 +251,9 @@ sub file_prereq_ok {
 	# for PPI::Token::Word 'require' objects.
 	$module_found{$module}++
 	    and next;
+
+	$self->{_requires}{$module}
+	    and push @{ $self->{_requires}{$module}{file} ||= [] }, $file;
 
 	$need_skip = 0;
 	$TEST->ok(
@@ -467,8 +487,12 @@ This class supports the following public methods:
  my $tpm = Test::Prereq::Meta->new();
 
 This static method instantiates the test object and reads in the meta
-data that contain the prerequisites. It accepts the following arguments
-as name/value pairs:
+data that contain the prerequisites.
+
+B<Caveat:> the resultant object should not be used to test more than one
+distribution.
+
+This method accepts the following arguments as name/value pairs:
 
 =over
 
@@ -639,6 +663,18 @@ If no arguments are specified, the arguments default to
 This method can also be exported and called as a subroutine, in which
 case it functions as though its invocant were the default object, i.e.
 one instantiated with no arguments.
+
+=head2 all_prereqs_used
+
+ $tpm->all_prereqs_used()
+
+This method tests whether all prerequisites have been used. If it fails,
+it emits a diagnostic saying which prerequisites are unused.
+
+This method will not work as desired unless the invocant was also used
+to test all relevant files in the distribution using
+L<all_prereq_ok()|/all_prereq_ok> or
+L<file_prereq_ok()|/file_prereq_ok>.
 
 =head2 file_prereq_ok
 

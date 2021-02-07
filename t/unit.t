@@ -79,6 +79,29 @@ Test::Prereq::Meta::file_prereq_ok( 't/data/rogue_require' );
 EOD
 }
 
+{
+    my $tpm = Test::Prereq::Meta->new(
+	meta_file	=> 't/data/accept/META_EXTRA_PREREQ.json',
+    );
+
+    $tpm->all_prereq_ok( 't/data/accept/lib' );
+
+    my $diag;
+
+    TODO: {
+	my $builder = Test::More->builder();
+	$builder->todo_output( \$diag );
+	local $TODO = 'Deliberately-failing test';
+	$tpm->all_prereqs_used();
+	$builder->reset_outputs();
+    }
+
+    like $diag,
+	qr/^# The following prerequisite is unused: Test::More$/sm,
+	'Detected unused prerequisite';
+
+}
+
 done_testing;
 
 1;

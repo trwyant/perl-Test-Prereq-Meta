@@ -9,18 +9,20 @@ lib/Test/Prereq/Meta.pm
 LICENSES/Artistic
 LICENSES/Copying
 Makefile.PL
-MANIFEST			This list of files
+MANIFEST
 META.json
 META.yml
 README
 t/basic.t
 t/data/accept/lib/accept.pm
 t/data/accept/META.json
+t/data/accept/META_EXTRA_PREREQ.json
 t/data/accept/META_NO_PROVIDES.json
 t/data/hello_world.PL
 t/data/rogue_require
 t/file_prereq_ok.t
 t/normalize_path.t
+t/prereq.t
 t/prereq_ok.t
 t/unit.t
 xt/author/changes.t
@@ -34,4 +36,3 @@ xt/author/pod.t
 xt/author/pod_coverage.t
 xt/author/pod_links.t
 xt/author/pod_spelling.t
-xt/author/prereq.t

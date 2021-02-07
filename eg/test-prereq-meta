@@ -26,6 +26,7 @@ GetOptions( \%opt,
 	name=s
 	perl_version|perl-version=s
 	prune=s@
+	used!
     },
     help	=> sub { pod2usage( { -verbose => 2 } ) },
 ) or pod2usage( { -verbose => 0 } );
@@ -48,6 +49,9 @@ if ( $opt{file_prereq_ok} ) {
 } else {
     $tpm->all_prereq_ok( @ARGV );
 }
+
+$opt{used}
+    and $tpm->all_prereqs_used();
 
 done_testing();
 
@@ -127,6 +131,11 @@ exempted from being included in the prerequisites.
 
 If unspecified, L<Test::Prereq::Meta|Test::Prereq::Meta>'s default is
 used.
+
+=head2 --used
+
+If this Boolean option is asserted, the C<all_prereqs_used()> method
+will be called after all specified modules have been tested.
 
 =head2 --version
 
