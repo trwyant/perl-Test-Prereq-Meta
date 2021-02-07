@@ -26,10 +26,13 @@ GetOptions( \%opt,
 	name=s
 	perl_version|perl-version=s
 	prune=s@
-	used!
+	unused!
+	uses=s@
     },
     help	=> sub { pod2usage( { -verbose => 2 } ) },
 ) or pod2usage( { -verbose => 0 } );
+
+$opt{unused} //= $opt{uses};
 
 if ( defined $opt{cd} ) {
     chdir $opt{cd}
@@ -42,6 +45,7 @@ my $tpm = Test::Prereq::Meta->new(
     name		=> $opt{name},
     perl_version	=> $opt{perl_version},
     prune		=> $opt{prune},
+    uses		=> $opt{uses},
 );
 
 if ( $opt{file_prereq_ok} ) {
@@ -50,7 +54,7 @@ if ( $opt{file_prereq_ok} ) {
     $tpm->all_prereq_ok( @ARGV );
 }
 
-$opt{used}
+$opt{unused}
     and $tpm->all_prereqs_used();
 
 done_testing();
@@ -132,10 +136,20 @@ exempted from being included in the prerequisites.
 If unspecified, L<Test::Prereq::Meta|Test::Prereq::Meta>'s default is
 used.
 
-=head2 --used
+=head2 --unused
 
 If this Boolean option is asserted, the C<all_prereqs_used()> method
 will be called after all specified modules have been tested.
+
+The default is C<--unused> if the L<--uses|/--uses> option is specified
+at least once; otherwise it is C<--no-unused>.
+
+=head2 --uses
+
+ --uses Some::Module
+
+This option causes the given module to be considered as used, even if no
+use of it is detected. It can be specified more than once.
 
 =head2 --version
 

@@ -55,6 +55,7 @@ sub new {
 	meta_file	=> [ qw{
 	    MYMETA.json MYMETA.yml META.json META.yml } ],
 	prune	=> [],
+	uses	=> [],
     };
     foreach my $name ( keys %{ $default } ) {
 	$arg{$name} //= $default->{$name};
@@ -119,6 +120,7 @@ sub new {
 	prune		=> $arg{prune},
 	# provides	=> $provides,
 	skip_name	=> $arg{skip_name},
+	uses		=> { map { $_ => 1 } perl => @{ $arg{uses} } },
 	_normalize_path	=> $arg{_normalize_path},
 	_requires	=> \%requires,
     }, ref $class || $class;
@@ -171,10 +173,9 @@ sub all_prereqs_used {
     state $TEST = Test::More->builder();
     local $Test::Builder::Level = _nest_depth();
 
-    state $skip = { map { $_ => 1 } qw{ perl } };
-
-    my @unused = grep { ! $skip->{$_} && ! $self->{_requires}{$_}{file} }
-	sort keys %{ $self->{_requires} };
+    my @unused = sort
+	grep { ! $self->{uses}{$_} && ! $self->{_requires}{$_}{file} }
+	keys %{ $self->{_requires} };
     my $rslt = $TEST->ok( ! @unused, 'All required modules are used' )
 	or $TEST->diag( "The following @{[
 	    @unused == 1 ? 'prerequisite is' : 'prerequisites are'
@@ -613,6 +614,14 @@ See below for the defined substitutions into the template. The C<'%m'>
 and C<'%e'> substitutions are not relevant to this template.
 
 The default value is C<'Prereq test: %f does not use any modules'>.
+
+=item uses
+
+This argument is the name of a module, or a reference to an array of
+module names. The L<all_prereqs_used()|/all_prereqs_used> test will
+count these as having been used, even if no use of them is found.
+
+The default is C<[]>, that is, a reference to an empty array.
 
 =back
 
