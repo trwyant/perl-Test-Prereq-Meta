@@ -19,6 +19,7 @@ my $dump;
 
 GetOptions( \%opt,
     qw{
+	accept=s@
 	cd|C=s
 	file_prereq_ok|file-prereq-ok!
 	meta_file|meta-file=s@
@@ -35,6 +36,7 @@ if ( defined $opt{cd} ) {
 }
 
 my $tpm = Test::Prereq::Meta->new(
+    accept		=> $opt{accept},
     meta_file		=> $opt{meta_file},
     name		=> $opt{name},
     perl_version	=> $opt{perl_version},
@@ -64,6 +66,14 @@ test-prereq-meta - Test whether all required modules are listed in the distribut
  test-prereq-meta -version
 
 =head1 OPTIONS
+
+=head2 --accept
+
+ --accept Some::Module
+
+This option causes the given module to be accepted even though it is not
+among the prerequisites of the distribution. It can be specified more
+than once.
 
 =head2 --cd
 
