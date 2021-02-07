@@ -1,6 +1,5 @@
 Build.PL
 Changes
-eg/prereq.t
 eg/README
 eg/test-prereq-meta
 inc/My/Module/Build.pm
