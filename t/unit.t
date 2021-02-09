@@ -102,6 +102,19 @@ EOD
 
 }
 
+{
+    local $@ = undef;
+    my $msg;
+    local $SIG{__DIE__} = sub { $msg = $_[0] };
+    my $tpm = eval {
+	Test::Prereq::Meta->new(
+	    fubar	=> 42,
+	);
+    };
+    ok !$tpm, 'new( fubar => 42 ) fails';
+    like $msg, qr<\bUnknown argument 'fubar'>, 'Got expected exception';
+}
+
 done_testing;
 
 1;

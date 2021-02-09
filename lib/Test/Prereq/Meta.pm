@@ -107,23 +107,34 @@ sub new {
 	    join ', ', @dup;
     }
 
-    return bless {
+    delete $arg{accept};
+    delete $arg{_meta_file};
+    delete $arg{path_type};
+
+    my $self = bless {
 	# accept		=> $arg{accept},
 	# core_modules	=> $core_modules,
-	file_error	=> $arg{file_error},
+	file_error	=> delete $arg{file_error},
 	has		=> \%has,
-	meta_file	=> $arg{meta_file},
+	meta_file	=> delete $arg{meta_file},
 	meta_data	=> $meta_data,
-	name		=> $arg{name},
-	per_file_note	=> $arg{per_file_note},
-	perl_version	=> $arg{perl_version},
-	prune		=> $arg{prune},
+	name		=> delete $arg{name},
+	per_file_note	=> delete $arg{per_file_note},
+	perl_version	=> delete $arg{perl_version},
+	prune		=> delete $arg{prune},
 	# provides	=> $provides,
-	skip_name	=> $arg{skip_name},
-	uses		=> { map { $_ => 1 } perl => @{ $arg{uses} } },
-	_normalize_path	=> $arg{_normalize_path},
+	skip_name	=> delete $arg{skip_name},
+	uses		=> { map { $_ => 1 } perl => @{ delete $arg{uses} } },
+	_normalize_path	=> delete $arg{_normalize_path},
 	_requires	=> \%requires,
     }, ref $class || $class;
+
+    if ( my $num = keys %arg ) {
+	croak "Unknown argument@{[ $num > 1 ? 's' : '' ]} ", join ', ',
+	    map { "'$_'" } sort keys %arg;
+    }	
+
+    return $self;
 }
 
 sub all_prereq_ok {
@@ -624,6 +635,8 @@ count these as having been used, even if no use of them is found.
 The default is C<[]>, that is, a reference to an empty array.
 
 =back
+
+The use of arguments other than the above will result in an exception.
 
 Arguments C<'file_error'>, C<'name'>, C<'per_file_note'>, and
 C<'skip_name'> are templates for generating the actual text to be
