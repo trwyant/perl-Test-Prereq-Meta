@@ -1,3 +1,6 @@
+0.000_915	2021-02-08	T. R. Wyant
+    Unrecognized arguments to new() raise an exception
+
 0.000_914	2021-02-07	T. R. Wyant
     Add new() argument 'uses'. Modules specified with 'uses' are
     presumed by all_prereqs_used() to have been used, even if no use of
