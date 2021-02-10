@@ -107,6 +107,15 @@ sub new {
 	    join ', ', @dup;
     }
 
+    # FIXME the following is because we don't scan Makefile.PL and/or
+    # Build.PL
+    -e 'Makefile'
+	and $has{'ExtUtils::MakeMaker'}
+	and push @{ $arg{uses} }, 'ExtUtils::MakeMaker';
+    -e 'Build'
+	and $has{'Module::Build'}
+	and push @{ $arg{uses} }, 'Module::Build';
+
     delete $arg{accept};
     delete $arg{_meta_file};
     delete $arg{path_type};
