@@ -16,7 +16,7 @@ use Module::Metadata;
 use Scalar::Util ();
 use Test::More 0.88;
 
-our $VERSION = '0.000_915';
+our $VERSION = '0.000_916';
 
 our @EXPORT_OK = qw{ all_prereq_ok file_prereq_ok prereq_ok };
 our %EXPORT_TAGS = (

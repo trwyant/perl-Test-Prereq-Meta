@@ -1,3 +1,8 @@
+0.000_916	2021-02-10	T. R. Wyant
+    Add build systems to {uses} as needed since we don't actually
+    analyze Makefile.PL and/pr Build.PL. I thought I didn't want to, but
+    I may have to think it out again.
+
 0.000_915	2021-02-08	T. R. Wyant
     Unrecognized arguments to new() raise an exception
 
