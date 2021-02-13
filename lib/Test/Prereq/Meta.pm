@@ -40,11 +40,11 @@ use constant REF_ARRAY	=> ref [];
 sub new {
     my ( $class, %arg ) = @_;
 
+    $arg{file_error} //= 'Failed to analyze %f: %e';
+    $arg{name} //= 'Prereq test: %f uses %m';
     # NOTE that {path_type} is unsupported, and may change or be
     # retracted without warning. I thought I needed it to support
     # argument {prune}, which is itself experimental.
-    $arg{file_error} //= 'Failed to analyze %f: %e';
-    $arg{name} //= 'Prereq test: %f uses %m';
     $arg{path_type} //= DEFAULT_PATH_TYPE;
     $arg{per_file_note} //= '%f';
     $arg{perl_version} //= 'none';
@@ -56,17 +56,22 @@ sub new {
 	    MYMETA.json MYMETA.yml META.json META.yml } ],
 	prune	=> [],
 	uses	=> [],
+	verbose	=> (
+	    scalar grep { -d } qw{ .bzr .cdv .git .hg .svn CVS } ) ? 1 : 0,
     };
     foreach my $name ( keys %{ $default } ) {
 	$arg{$name} //= $default->{$name};
 	my $code = __PACKAGE__->can( "__validate_$name" ) ||
 	    __PACKAGE__->can( '__validate_' . ref $default->{$name} ) ||
-	    sub { $_[0] };
+	    sub {};
 	$code->( $name, \%arg );
     }
 
     my $core_modules;
     {
+	# %Module::CoreList::version is public, so I figured the easiest
+	# implementation of the 'special' Perl versions was to just hack
+	# them into it.
 	local $Module::CoreList::version{none} = {};
 	local $Module::CoreList::version{this} =
 	    $Module::CoreList::version{$]};
@@ -90,6 +95,10 @@ sub new {
 
     # The above is pretty much verbatim from the CPAN::Meta synopsis
 
+    # NOTE that if we actually need the Perl version, we need to nab it
+    # before here.
+    delete $requires{perl};
+
     my $provides = _provides();
 
     my %has = map { $_ => 1 }
@@ -98,13 +107,21 @@ sub new {
 	keys %{ $provides },
 	keys %requires,
 	;
-    delete $has{perl};
 
-    if ( my @dup = grep { $requires{$_} } @{ $arg{accept} } ) {
-	diag "The following @{[
-	    @dup == 1 ? 'module appears' : 'modules appear'
-	    ]} in both the prerequisites and\nthe 'accept' argument: ",
-	    join ', ', sort @dup;
+    $arg{uses} = { map { $_ => 1 } @{ $arg{uses} } };
+
+    if ( $arg{verbose} ) {
+	my @dup;
+	@dup = grep { $requires{$_} } @{ $arg{accept} }
+	    and diag "The following @{[
+		@dup == 1 ? 'module appears' : 'modules appear'
+		]} in both the prerequisites and\nthe 'accept' argument: ",
+		join ', ', sort @dup;
+	@dup = grep { $arg{uses}{$_} } @{ $arg{accept} }
+	    and diag "The following @{[
+		@dup == 1 ? 'module appears' : 'modules appear'
+		]} in both the 'accept' argument and\nthe 'uses' argument: ",
+		join ', ', sort @dup;
     }
 
     # FIXME the following is because we don't scan Makefile.PL and/or
@@ -122,6 +139,7 @@ sub new {
 
     my $self = bless {
 	# accept		=> $arg{accept},
+	verbose		=> delete $arg{verbose},
 	# core_modules	=> $core_modules,
 	file_error	=> delete $arg{file_error},
 	has		=> \%has,
@@ -133,7 +151,7 @@ sub new {
 	prune		=> delete $arg{prune},
 	# provides	=> $provides,
 	skip_name	=> delete $arg{skip_name},
-	uses		=> { map { $_ => 1 } perl => @{ delete $arg{uses} } },
+	uses		=> delete $arg{uses},
 	_normalize_path	=> delete $arg{_normalize_path},
 	_requires	=> \%requires,
     }, ref $class || $class;
@@ -195,7 +213,16 @@ sub all_prereqs_used {
 
     $TEST->note( '' );
 
-    if ( my @dup = grep { $self->{_requires}{$_}{file} && $self->{uses}{$_} }
+    my @unused = sort
+	grep { ! $self->{uses}{$_} && ! $self->{_requires}{$_}{file} }
+	keys %{ $self->{_requires} };
+    my $rslt = $TEST->ok( ! @unused, 'All required modules are used' )
+	or $TEST->diag( "The following @{[
+	    @unused == 1 ? 'prerequisite is' : 'prerequisites are'
+	    ]} unused: ", join ', ', @unused );
+
+    if ( $self->{verbose} and
+	my @dup = grep { $self->{_requires}{$_}{file} && $self->{uses}{$_} }
 	keys %{ $self->{_requires} }
     ) {
 	$TEST->diag( "The following @{[
@@ -204,13 +231,6 @@ sub all_prereqs_used {
 	    join ', ', sort @dup );
     }
 
-    my @unused = sort
-	grep { ! $self->{uses}{$_} && ! $self->{_requires}{$_}{file} }
-	keys %{ $self->{_requires} };
-    my $rslt = $TEST->ok( ! @unused, 'All required modules are used' )
-	or $TEST->diag( "The following @{[
-	    @unused == 1 ? 'prerequisite is' : 'prerequisites are'
-	    ]} unused: ", join ', ', @unused );
     return $rslt;
 }
 
@@ -531,9 +551,11 @@ This method accepts the following arguments as name/value pairs:
 
 This argument is the name of a module, or a reference to an array of
 module names. These modules will be passed even if they are not listed
-as prerequisites. However, if any module listed here is found in the
-prerequisites, a diagnostic will be generated when the object is
-instantiated.
+as prerequisites.
+
+If the L<verbose|/verbose> attribute is true, a diagnostic will be
+emitted for any modules listed here which also appear in the
+prerequisites or the L<uses|/uses> attribute.
 
 The default is C<[]>, that is, a reference to an empty array.
 
@@ -651,7 +673,22 @@ This argument is the name of a module, or a reference to an array of
 module names. The L<all_prereqs_used()|/all_prereqs_used> test will
 count these as having been used, even if no use of them is found.
 
+If the L<verbose|/verbose> attribute is true, a diagnostic will be
+emitted for any modules listed here which also appear in the
+L<accept|/accept> attribute.
+
 The default is C<[]>, that is, a reference to an empty array.
+
+=item verbose
+
+This Boolean argument specifies whether diagnostics are generated on
+redundant C<accept> and C<uses> specifications.
+
+On the presumption that these are more likely to be of use to a module
+author than a module user, the default is true if and only if at least
+one of the following directories exists at the distribution's top level:
+
+    .bzr .cdv .git .hg .svn CVS
 
 =back
 
@@ -716,6 +753,10 @@ This method will not work as desired unless the invocant was also used
 to test all relevant files in the distribution using
 L<all_prereq_ok()|/all_prereq_ok> or
 L<file_prereq_ok()|/file_prereq_ok>.
+
+If the L<verbose|/verbose> attribute is true, a diagnostic will be
+emitted for any modules listed in the L<uses|/uses> attribute which were
+actually used by the code being tested.
 
 =head2 file_prereq_ok
 

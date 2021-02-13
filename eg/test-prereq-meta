@@ -28,6 +28,7 @@ GetOptions( \%opt,
 	prune=s@
 	unused!
 	uses=s@
+	verbose!
     },
     help	=> sub { pod2usage( { -verbose => 2 } ) },
 ) or pod2usage( { -verbose => 0 } );
@@ -46,6 +47,7 @@ my $tpm = Test::Prereq::Meta->new(
     perl_version	=> $opt{perl_version},
     prune		=> $opt{prune},
     uses		=> $opt{uses},
+    verbose		=> $opt{verbose},
 );
 
 if ( $opt{file_prereq_ok} ) {
@@ -150,6 +152,14 @@ at least once; otherwise it is C<--no-unused>.
 
 This option causes the given module to be considered as used, even if no
 use of it is detected. It can be specified more than once.
+
+=head2 --verbose
+
+This Boolean option causes diagnostics to be emitted for redundant
+L<--accept|/--accept> and (if L<--unused|/--unused> is asserted)
+L<--uses|/--uses> modules.
+
+The default is C<--no-verbose>.
 
 =head2 --version
 

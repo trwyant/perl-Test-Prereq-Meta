@@ -71,11 +71,15 @@ Test::Prereq::Meta::file_prereq_ok( 't/data/rogue_require' );
     $builder->failure_output( \$diag );
     Test::Prereq::Meta->new(
 	accept	=> [ qw{ CPAN::Meta } ],
+	uses	=> [ qw{ CPAN::Meta } ],
+	verbose	=> 1,
     );
     $builder->reset_outputs();
-    is $diag, <<'EOD', 'Got diagnostic on accept of prerequisite';
+    is $diag, <<'EOD', 'Got diagnostic on duplicate accept and uses';
 # The following module appears in both the prerequisites and
 # the 'accept' argument: CPAN::Meta
+# The following module appears in both the 'accept' argument and
+# the 'uses' argument: CPAN::Meta
 EOD
 }
 
@@ -85,6 +89,7 @@ EOD
 	meta_file	=> 't/data/accept/META_WITH_STRICT.json',
 	name		=> q<Diagnostic on 'uses'>,
 	uses		=> [ qw{ strict } ],
+	verbose		=> 1,
     );
 
     $tpm->all_prereq_ok( 't/data/accept/lib' );
