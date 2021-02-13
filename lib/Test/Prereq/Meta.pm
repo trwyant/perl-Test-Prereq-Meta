@@ -10,6 +10,7 @@ use CPAN::Meta;
 use Exporter qw{ import };
 use ExtUtils::Manifest ();
 use File::Find ();
+use File::Glob ();
 use Module::Extract::Use;
 use Module::CoreList;
 use Module::Metadata;
@@ -124,22 +125,12 @@ sub new {
 		join ', ', sort @dup;
     }
 
-    # FIXME the following is because we don't scan Makefile.PL and/or
-    # Build.PL
-    -e 'Makefile'
-	and $has{'ExtUtils::MakeMaker'}
-	and push @{ $arg{uses} }, 'ExtUtils::MakeMaker';
-    -e 'Build'
-	and $has{'Module::Build'}
-	and push @{ $arg{uses} }, 'Module::Build';
-
     delete $arg{accept};
     delete $arg{_meta_file};
     delete $arg{path_type};
 
     my $self = bless {
 	# accept		=> $arg{accept},
-	verbose		=> delete $arg{verbose},
 	# core_modules	=> $core_modules,
 	file_error	=> delete $arg{file_error},
 	has		=> \%has,
@@ -152,6 +143,8 @@ sub new {
 	# provides	=> $provides,
 	skip_name	=> delete $arg{skip_name},
 	uses		=> delete $arg{uses},
+	verbose		=> delete $arg{verbose},
+	_both_tools	=> ( -e 'Makefile.PL' && -e 'Build.PL' ),
 	_normalize_path	=> delete $arg{_normalize_path},
 	_requires	=> \%requires,
     }, ref $class || $class;
@@ -166,8 +159,13 @@ sub new {
 
 sub all_prereq_ok {
     my ( $self, @file ) = _unpack_args( @_ );
-    @file
-	or @file = grep { -d } qw{ blib/arch blib/lib blib/script t };
+
+    unless( @file ) {
+	@file = (
+	    ( grep { -d } qw{ blib/arch blib/lib blib/script t } ),
+	    File::Glob::bsd_glob( '*.PL' ),
+	);
+    }
 
     my $need_skip = 1;
     my $ok = 1;
@@ -306,9 +304,22 @@ sub file_prereq_ok {
 	$self->{_requires}{$module}
 	    and push @{ $self->{_requires}{$module}{file} ||= [] }, $file;
 
+	state $toolchain = {
+	    'Makefile.PL'	=> {
+		'ExtUtils::MakeMaker'	=> 1,
+		'inc::Module::Install'	=> 1,
+	    },
+	    'Build.PL'		=> {
+		'Module::Build'		=> 1,
+		'Module::Build::Tiny'	=> 1,
+	    },
+	};
+
 	$need_skip = 0;
 	$TEST->ok(
-	    $self->{has}{$module} || 0,
+	    $self->{has}{$module} ||
+	    $self->{_both_tools} && $toolchain->{$file}{$module} ||
+	    0,
 	    _format(
 		$self->{name},
 		{
@@ -825,6 +836,15 @@ This module uses the meta data C<'provides'> information to determine
 what modules are provided by the distribution. If this is absent, it
 uses L<Module::Metadata|Module::Metadata> to determine provided modules
 directly from F<blib/lib/>.
+
+It is a personal crotchet of mine that if a distribution provides both
+F<Makefile.PL> and F<Build.PL>, that neither
+L<ExtUtils::MakeMaker|ExtUtils::MakeMaker> nor
+L<Module::Build|Module::Build> should be a prerequisite. The actual
+situation is that one or the other is required, but both are not. But
+the Perl dependency system appears to have no way to represent this. So
+in the presence of both F<Makefile.PL> and F<Build.PL>, I have indulged
+my whim.
 
 =head1 SEE ALSO
 
