@@ -1,3 +1,10 @@
+0.000_918	2021-02-13	T. R. Wyant
+    Include configuation stuff in analysis (i.e. Makefile.PL, Build.PL,
+    or both)
+
+    This also required bringing the configure_requires metadata of this
+    module up to snuff.
+
 0.000_917	2021-02-13	T. R. Wyant
     Add 'verbose' attribute to control redundancy diagnostics.
 
