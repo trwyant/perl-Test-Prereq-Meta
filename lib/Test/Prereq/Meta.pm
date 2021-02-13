@@ -104,7 +104,7 @@ sub new {
 	diag "The following @{[
 	    @dup == 1 ? 'module appears' : 'modules appear'
 	    ]} in both the prerequisites and\nthe 'accept' argument: ",
-	    join ', ', @dup;
+	    join ', ', sort @dup;
     }
 
     # FIXME the following is because we don't scan Makefile.PL and/or
@@ -193,6 +193,17 @@ sub all_prereqs_used {
     state $TEST = Test::More->builder();
     local $Test::Builder::Level = _nest_depth();
 
+    $TEST->note( '' );
+
+    if ( my @dup = grep { $self->{_requires}{$_}{file} && $self->{uses}{$_} }
+	keys %{ $self->{_requires} }
+    ) {
+	$TEST->diag( "The following @{[
+	    @dup == 1 ? 'module appears' : 'modules appear'
+	    ]} in both 'use' statements and\nthe 'uses' argument: ",
+	    join ', ', sort @dup );
+    }
+
     my @unused = sort
 	grep { ! $self->{uses}{$_} && ! $self->{_requires}{$_}{file} }
 	keys %{ $self->{_requires} };
@@ -213,6 +224,7 @@ sub file_prereq_ok {
     # (localized) to get tests reported relative to the correct file and
     # line, rather than setting the 'level' attribute.
     state $TEST = Test::More->builder();
+    local $Test::Builder::Level = _nest_depth();
 
     if ( $self->{per_file_note} ne '' ) {
 	# We are not interested in the actual test number, but we need
@@ -240,7 +252,6 @@ sub file_prereq_ok {
 
     my $modules = $extor->get_modules_with_details( $file );
     if ( my $err = $extor->error() ) {
-	local $Test::Builder::Level = _nest_depth();
 	$TEST->ok( 0,
 	    _format(
 		$self->{file_error},
@@ -258,7 +269,6 @@ sub file_prereq_ok {
 	sort { $a->{module} cmp $b->{module} }
 	@{ $modules }
     ) {
-	local $Test::Builder::Level = _nest_depth();
 	my $module = $usage->{module};
 
 	# The following is needed because Module::Extract::Use tries too

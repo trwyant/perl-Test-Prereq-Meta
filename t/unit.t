@@ -80,6 +80,26 @@ EOD
 }
 
 {
+    my $builder = Test::More->builder();
+    my $tpm = Test::Prereq::Meta->new(
+	meta_file	=> 't/data/accept/META_WITH_STRICT.json',
+	name		=> q<Diagnostic on 'uses'>,
+	uses		=> [ qw{ strict } ],
+    );
+
+    $tpm->all_prereq_ok( 't/data/accept/lib' );
+
+    my $diag;
+    $builder->failure_output( \$diag );
+    $tpm->all_prereqs_used();
+    $builder->reset_outputs();
+    is $diag, <<'EOD', q<Got diagnostic on 'uses' of actually-used module>;
+# The following module appears in both 'use' statements and
+# the 'uses' argument: strict
+EOD
+}
+
+{
     my $tpm = Test::Prereq::Meta->new(
 	meta_file	=> 't/data/accept/META_EXTRA_PREREQ.json',
     );
@@ -99,7 +119,6 @@ EOD
     like $diag,
 	qr/^# The following prerequisite is unused: Test::More$/sm,
 	'Detected unused prerequisite';
-
 }
 
 {
