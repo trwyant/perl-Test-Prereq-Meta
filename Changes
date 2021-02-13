@@ -1,3 +1,10 @@
+0.000_917	2021-02-13	T. R. Wyant
+    Add 'verbose' attribute to control redundancy diagnostics.
+
+    Add diagnostic on same module in 'accept' and 'uses'.
+
+    Add diagnostic on 'uses' of actually-used module.
+
 0.000_916	2021-02-10	T. R. Wyant
     Add build systems to {uses} as needed since we don't actually
     analyze Makefile.PL and/pr Build.PL. I thought I didn't want to, but
