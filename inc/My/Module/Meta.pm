@@ -48,7 +48,7 @@ sub distribution {
 }
 
 sub license {
-    return 'perl_5';
+    return 'perl';
 }
 
 sub meta_merge {
