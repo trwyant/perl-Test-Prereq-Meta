@@ -3,7 +3,6 @@ Changes
 eg/README
 eg/test-prereq-meta
 inc/My/Module/Build.pm
-inc/My/Module/MakeMaker.pm
 inc/My/Module/Meta.pm
 lib/Test/Prereq/Meta.pm
 LICENSES/Artistic
