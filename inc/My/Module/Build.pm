@@ -6,42 +6,6 @@ use warnings;
 use Module::Build;
 our @ISA = qw{ Module::Build };
 
-use My::Module::Meta;
-
-sub new {
-    my ( $class ) = @_;
-
-    ( my $mbv = Module::Build->VERSION() ) =~ s/_//g;
-
-    my $meta = My::Module::Meta->new();
-
-    my %args = (
-	add_to_cleanup	=> [ qw{ cover_db xt/author/optionals } ],
-	build_requires	=> $meta->build_requires(),
-	configure_requires	=> $meta->configure_requires(),
-	dist_abstract	=> $meta->abstract(),
-	dist_author	=> $meta->author(),
-	dist_name	=> $meta->dist_name(),
-	license		=> $meta->license(),
-	module_name	=> $meta->module_name(),
-	requires	=> $meta->requires(
-	    perl	=> $meta->requires_perl(),
-	),
-    );
-
-    if ( $mbv >= 0.28 ) {
-	$args{meta_merge} = $meta->meta_merge();
-	$args{meta_add} = {
-	    no_index	=> $meta->no_index(),
-	};
-    }
-
-    $mbv >= 0.34
-	and $args{auto_configure_requires} = 0;	# Don't require Module::Build
-
-    return $class->SUPER::new( %args );
-}
-
 sub ACTION_authortest {
     my ( $self, @args ) = @_;
 
