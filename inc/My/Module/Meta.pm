@@ -207,6 +207,18 @@ C<MAKING_MODULE_DISTRIBUTION> at the time the object was instantiated.
 
 This subroutine returns the distribution's license.
 
+=head2 meta_merge
+
+ use YAML;
+ print Dump( $meta->meta_merge() );
+
+This method returns a reference to a hash describing the meta-data which
+has to be provided by making use of the builder's C<meta_merge>
+functionality. This includes the C<dynamic_config> and C<resources>
+data.
+
+Any arguments will be appended to the generated array.
+
 =head2 module_name
 
 This subroutine returns the name of the module the distribution is based
