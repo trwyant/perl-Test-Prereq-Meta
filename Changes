@@ -1,3 +1,9 @@
+0.000_919	2021-02-13	T. R. Wyant
+    Remove './' from *.PL file names.
+
+    Add inc/My/Module/MakeMaker.pm to Git repository (missed in prior
+    commit)
+
 0.000_918	2021-02-13	T. R. Wyant
     Include configuation stuff in analysis (i.e. Makefile.PL, Build.PL,
     or both)

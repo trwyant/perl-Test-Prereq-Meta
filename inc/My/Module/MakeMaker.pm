@@ -8,7 +8,7 @@ use warnings;
 use ExtUtils::MakeMaker;
 use My::Module::Meta;
 
-our $VERSION = '0.000_918';
+our $VERSION = '0.000_919';
 
 sub write_make_file {
 
