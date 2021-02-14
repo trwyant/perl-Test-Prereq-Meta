@@ -184,6 +184,9 @@ sub all_prereq_ok {
 		}
 		_is_perl( $_ )
 		    or return;
+		# The following is because File::Find tends to give us
+		# './fubar' if 'fubar' is in the current directory.
+		$_ = File::Spec->abs2rel( $_ );
 		$need_skip = 0;
 		$self->file_prereq_ok( $_ )
 		    or $ok = 0;
