@@ -11,6 +11,7 @@ use Exporter qw{ import };
 use ExtUtils::Manifest ();
 use File::Find ();
 use File::Glob ();
+use File::Spec;
 use Module::Extract::Use;
 use Module::CoreList;
 use Module::Metadata;
@@ -163,7 +164,8 @@ sub all_prereq_ok {
     unless( @file ) {
 	@file = (
 	    ( grep { -d } qw{ blib/arch blib/lib blib/script t } ),
-	    File::Glob::bsd_glob( '*.PL' ),
+	    ( map { File::Spec->abs2rel( $_ ) }
+		File::Glob::bsd_glob( '*.PL' ) ),
 	);
     }
 

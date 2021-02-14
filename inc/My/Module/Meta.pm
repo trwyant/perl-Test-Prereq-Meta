@@ -110,6 +110,7 @@ sub requires {
 	'ExtUtils::Manifest'	=> 0,
 	'File::Find'		=> 0,
 	'File::Glob'		=> 0,
+	'File::Spec'		=> 0,
 	'Module::CoreList'	=> 0,
 	'Module::Extract::Use'	=> 1.045,	# want [] if no use stmt
 	'Module::Metadata'	=> 0,
