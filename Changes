@@ -1,3 +1,7 @@
+0.000_920	2021-02-13	T. R. Wyant
+    Remove './' from files in the current directory before
+    all_prereq_ok() processes them.
+
 0.000_919	2021-02-13	T. R. Wyant
     Remove './' from *.PL file names.
 
