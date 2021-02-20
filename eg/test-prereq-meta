@@ -10,7 +10,7 @@ use Pod::Usage;
 use Test::More 0.88;
 use Test::Prereq::Meta;
 
-our $VERSION = '0.000_920';
+our $VERSION = '0.000_921';
 
 my %opt = (
     ignore_url	=> [],

@@ -1,3 +1,8 @@
+0.000_921	2021-02-20	T. R. Wyant
+    Add add_to_cleanup() to inc/My/Module/Meta.pm.  Also version_from().
+
+    Go back to old Build.PL and Makefile.PL structure.
+
 0.000_920	2021-02-13	T. R. Wyant
     Remove './' from files in the current directory before
     all_prereq_ok() processes them.
