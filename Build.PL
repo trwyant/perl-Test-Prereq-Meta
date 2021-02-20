@@ -14,7 +14,7 @@ use My::Module::Meta;
 my $meta = My::Module::Meta->new();
 
 my %args = (
-    add_to_cleanup	=> [ qw{ cover_db xt/author/optionals } ],
+    add_to_cleanup	=> $meta->add_to_cleanup(),
     build_requires	=> $meta->build_requires(),
     configure_requires	=> $meta->configure_requires(),
     dist_abstract	=> $meta->abstract(),
@@ -25,6 +25,7 @@ my %args = (
     requires	=> $meta->requires(
 	perl	=> $meta->requires_perl(),
     ),
+    script_files	=> $meta->script_files(),
 );
 
 if ( $mbv >= 0.28 ) {

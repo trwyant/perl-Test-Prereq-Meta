@@ -21,6 +21,10 @@ sub abstract {
     return 'Test distribution prerequisites against meta data.';
 }
 
+sub add_to_cleanup {
+    return [ qw{ cover_db xt/author/optionals } ];
+}
+
 sub author {
     return 'Thomas R. Wyant, III F<wyant at cpan dot org>';
 }
@@ -127,6 +131,15 @@ sub requires_perl {
 }
 
 
+sub script_files {
+    return [
+    ];
+}
+
+sub version_from {
+    return 'lib/Test/Prereq/Meta.pm';
+}
+
 1;
 
 __END__
@@ -163,6 +176,11 @@ This method instantiates the class.
 =head2 abstract
 
 This subroutine returns the distribution's abstract.
+
+=head2 add_to_cleanup
+
+This method returns a reference to an array of files to be added to the
+cleanup.
 
 =head2 author
 
@@ -257,6 +275,16 @@ may be added.
  print 'This package requires Perl ', $meta->requires_perl(), "\n";
 
 This method returns the version of Perl required by the package.
+
+=head2 script_files
+
+This method returns a reference to an array containing the names of
+script files provided by this distribution. This array may be empty.
+
+=head2 version_from
+
+This method returns the name of the distribution file from which the
+distribution's version is to be derived.
 
 =head1 ATTRIBUTES
 

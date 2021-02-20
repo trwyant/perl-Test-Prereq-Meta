@@ -16,13 +16,14 @@ my %args = (
     ABSTRACT	=> $meta->abstract(),
     AUTHOR	=> $meta->author(),
     DISTNAME	=> $meta->dist_name(),
-    NAME		=> $meta->module_name(),
-    # VERSION_FROM	=> 'lib/Test/CPAN/Meta/Links.pm',
-    PREREQ_PM		=> $meta->requires(),
-    PL_FILES => {},	# Prevent old MakeMaker from running Build.PL
+    EXE_FILES	=> $meta->script_files(),
+    NAME	=> $meta->module_name(),
+    PREREQ_PM	=> $meta->requires(),
+    PL_FILES	=> {},	# Prevent old MakeMaker from running Build.PL
     realclean	=> {
-	FILES => 'cover_db xt/author/optionals',
+	FILES => join( ' ', @{ $meta->add_to_cleanup() } ),
     },
+    VERSION_FROM	=> $meta->version_from(),
 );
 
 $mmv >= 6.31
