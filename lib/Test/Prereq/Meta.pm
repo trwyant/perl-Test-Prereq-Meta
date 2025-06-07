@@ -457,10 +457,11 @@ sub __validate_meta_file {
     @{ $arg->{$name} }
 	or croak( "'$name' must specify at least one file" );
     foreach my $fn ( @{ $arg->{$name} } ) {
-	-r $fn
-	    or next;
+	local $@ = undef;
+	eval {
+	    $arg->{"_$name"} = CPAN::Meta->load_file( $fn );
+	} or next;
 	$arg->{$name} = $fn;
-	$arg->{"_$name"} = CPAN::Meta->load_file( $fn );
 	return;
     }
     1 == @{ $arg }
