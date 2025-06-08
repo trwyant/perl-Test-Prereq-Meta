@@ -13,7 +13,7 @@ use File::Find ();
 use File::Glob ();
 use File::Spec;
 use Module::Extract::Use;
-use Module::CoreList;
+use Module::CoreList 2.13;
 use Module::Metadata;
 use Scalar::Util ();
 use Test::More 0.88;
@@ -69,17 +69,8 @@ sub new {
 	$code->( $name, \%arg );
     }
 
-    my $core_modules;
-    {
-	# %Module::CoreList::version is public, so I figured the easiest
-	# implementation of the 'special' Perl versions was to just hack
-	# them into it.
-	local $Module::CoreList::version{none} = {};
-	local $Module::CoreList::version{this} =
-	    $Module::CoreList::version{$]};
-	$core_modules = $Module::CoreList::version{$arg{perl_version}}
-	    or croak( "Unknown 'perl_version' $arg{perl_version}" );
-    }
+    my $core_modules = _get_corelist_version( $arg{perl_version} )
+	or croak( "Unknown 'perl_version' $arg{perl_version}" );
 
     # The below is pretty much verbatim from the CPAN::Meta synopsis
 
@@ -368,6 +359,25 @@ sub prereq_ok {
 	perl_version	=> $perl_version // $],
     );
     return $self->all_prereq_ok();
+}
+
+sub _get_corelist_version {
+    my ( $perl_ver ) = @_;
+
+    $perl_ver eq 'none'
+	and return {};
+
+    $perl_ver eq 'this'
+	and $perl_ver = $];
+
+    my $data;
+    $data = $Module::CoreList::version{$perl_ver}
+	and return $data;
+
+    # The following is needed under very old versions of
+    # Module::CoreList -- pre-2.14 I think.
+    $perl_ver =~ s/ 0+ \z //smx;
+    return $Module::CoreList::version{$perl_ver};
 }
 
 sub _is_perl {
