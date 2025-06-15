@@ -1,4 +1,4 @@
-0.003_01	2025-06-08	T. R. Wyant
+0.004		2025-06-15	T. R. Wyant
     Make work with Module::CoreList 2.13. This is the version that comes
     with Perl 5.10.0. Required Module::CoreList 2.13 in metadata and
     module, just to be safe.
