@@ -882,8 +882,7 @@ statements.
 =head1 SUPPORT
 
 Support is by the author. Please file bug reports at
-L<https://rt.cpan.org/Public/Dist/Display.html?Name=Test-Prereq-Meta>,
-L<https://github.com/trwyant/perl-Test-Prereq-Meta/issues>, or in
+L<https://github.com/trwyant/perl-Astro-UTDF/issues> or in
 electronic mail to the author.
 
 =head1 AUTHOR
