@@ -1,5 +1,5 @@
 use strict;
 
-our $VERSION = '0.004_02';
+our $VERSION = '0.005';
 
 1;
